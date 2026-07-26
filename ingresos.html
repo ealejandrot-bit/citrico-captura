@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cítrico · Ingresos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3ECDD; --surface:#FCF8EF; --field:#ECE3D0; --field-2:#E4D9C3;
+  --ink:#2C281F; --ink2:#6E6551; --muted:#A99E86; --line:#E7DCC7;
+  --accent:#586142; --accent-d:#464E31; --accent-weak:#E6E9DA;
+  --ok:#3f7d4e; --warn:#9a6b23;
+  --sans:'Poppins',system-ui,Segoe UI,Roboto,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif; --script:'Caveat',cursive;
+  --r:14px; --r-lg:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:600px;margin:0 auto;padding:30px 20px 80px}
+.topnav{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:20px}
+.topnav a{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2);text-decoration:none;transition:.15s}
+.topnav a.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(44,40,31,.14)}
+.masthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;gap:14px}
+.eyebrow{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.wordmark{font-family:var(--script);font-weight:700;font-size:42px;line-height:.9;color:var(--accent)}
+.tagline{font-family:var(--script);color:var(--ink2);font-size:19px;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.02em;padding:6px 12px;border-radius:100px;background:var(--field);color:var(--ink2);font-weight:500;white-space:nowrap}
+.panel{background:var(--surface);border-radius:var(--r-lg);padding:22px;margin-bottom:14px;box-shadow:0 1px 2px rgba(44,40,31,.04),0 12px 30px -24px rgba(44,40,31,.26)}
+.p-head{display:flex;align-items:baseline;gap:11px;margin-bottom:14px}
+.p-num{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--accent)}
+.p-title{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.1}
+p{margin:9px 0}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.55}
+.btn-drag{display:inline-block;background:var(--accent);color:#fff !important;text-decoration:none;font-weight:600;font-size:17px;padding:15px 24px;border-radius:14px;box-shadow:0 6px 16px rgba(88,97,66,.28);cursor:grab}
+.btn-drag:hover{background:var(--accent-d)}
+.btn-link{display:inline-block;text-decoration:none;font-weight:600;font-size:13.5px;padding:11px 16px;border-radius:11px;background:var(--field);color:var(--ink);margin:4px 6px 4px 0}
+.btn-link:hover{background:var(--field-2)}
+.status{display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:12px;font-weight:600;font-size:14px}
+.status.ok{background:#e7f0e5;color:var(--ok)}
+.status.pend{background:#f5ecd7;color:var(--warn)}
+ol{padding-left:20px;margin:8px 0} li{margin:8px 0}
+.paso{background:var(--accent);color:#fff;border-radius:50%;display:inline-block;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;font-weight:700;margin-right:6px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.mono{font-variant-numeric:tabular-nums}
+textarea{width:100%;height:70px;border:1px solid var(--line);border-radius:10px;padding:9px;font-family:ui-monospace,monospace;font-size:10.5px;background:#fbf8f0;color:var(--ink2)}
+.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="index.html">✍️ Captura</a>
+    <a href="estado-cuenta.html">🏦 Estado de cuenta</a>
+    <a class="active">🍋 Ingresos</a>
+  </div>
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Ingresos · Cítrico</div>
+      <div class="wordmark">Cítrico</div>
+      <div class="tagline">ventas del mes</div>
+    </div>
+    <div class="pill" id="ultimaPill">última carga: —</div>
+  </div>
+
+  <div class="panel">
+    <div class="p-head"><span class="p-num">01</span><span class="p-title">Estado del mes</span></div>
+    <div class="status pend" id="estadoMes">Revisando…</div>
+    <p class="hint" id="estadoHint">Aquí verás si el mes anterior ya se cargó o sigue pendiente.</p>
+    <p style="margin-top:12px;font-size:14px"><b>📅 Base actualizada hasta:</b> <span id="hasta" class="mono">—</span></p>
+  </div>
+
+  <div class="panel">
+    <div class="p-head"><span class="p-num">02</span><span class="p-title">Cargar el mes</span></div>
+    <p style="margin-top:2px"><b>Cada mes:</b></p>
+    <ol>
+      <li><span class="paso">1</span> Abre Wansoft e inicia sesión.
+        <div style="margin:9px 0 2px"><a class="btn-link" href="https://www.wansoft.net/Wansoft.Web/Reports/ConsolidatedSalesMasterReport" target="_blank" rel="noopener">↗ Abrir Wansoft</a></div>
+      </li>
+      <li><span class="paso">2</span> Dale clic al botón para cargar las ventas <span class="muted">(la primera vez, arrástralo a tu barra de favoritos)</span>:
+        <div style="text-align:center;margin:14px 0 4px"><a class="btn-drag" id="bm" href="#">🍋 Cargar ventas Cítrico</a></div>
+        <div class="hint" style="text-align:center">↑ La primera vez, arrástralo a tu barra de favoritos. Después solo dale clic desde ahí, estando dentro de Wansoft.</div>
+      </li>
+      <li><span class="paso">3</span> Confirma el mes (ya viene el anterior). Si ya estaba cargado, te avisa.</li>
+      <li><span class="paso">4</span> Espera al mensaje <b>“✓ cargado”</b> con los totales. ¡Listo!
+        <div style="margin:9px 0 2px"><a class="btn-link" href="https://docs.google.com/spreadsheets/d/1FhZb0ssIN0IHl2ROqxNS0ZlwLhKi8HL5oRUoExDxB0M/edit" target="_blank" rel="noopener">↗ Ver hoja de Ingresos</a></div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <div class="p-head"><span class="p-num">03</span><span class="p-title">Verificación · meses cargados</span></div>
+    <div id="tabla"><p class="muted">Cargando…</p></div>
+  </div>
+</div>
+
+<script>
+var EXEC="https://script.google.com/macros/s/AKfycbw9DVu9HkxmuS0pwrbPrU4IajL1J-TaIKTblAUjwmqAvP6KxaenMaHm6spcLW8FcHYS/exec";
+var MESES=["","enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function fmt(n){n=Math.round((Number(n)||0)*100)/100;var s=n.toFixed(2).split(".");s[0]=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");return "$"+s.join(".");}
+
+/* ---- el bookmarklet (se corre dentro de Wansoft) ---- */
+async function CARGAR(){
+  try{
+    if(location.hostname.indexOf("wansoft")<0){alert("Primero abre Wansoft e inicia sesión, y luego dale al botón.");return;}
+    var EXEC="__EXEC__";
+    var SUC={"PRESA":9657,"SUR":6603};
+    function jsonp(u){return new Promise(function(res,rej){var cb="cb"+Math.floor(Math.random()*1e9);window[cb]=function(d){res(d);try{delete window[cb];}catch(e){}sc.parentNode.removeChild(sc);};var sc=document.createElement("script");sc.onerror=function(){rej("jsonp");};sc.src=u+(u.indexOf("?")<0?"?":String.fromCharCode(38))+"callback="+cb;document.body.appendChild(sc);});}
+    var d=new Date();d.setDate(1);d.setMonth(d.getMonth()-1);
+    var def=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);
+    var mm=prompt("¿Qué mes cargar? (AÑO-MES)",def);if(!mm)return;
+    var pp=mm.split("-");var anio=parseInt(pp[0],10),mes=parseInt(pp[1],10);
+    if(!anio||!mes){alert("Formato inválido. Usa AÑO-MES, por ejemplo 2026-06");return;}
+    var est=await jsonp(EXEC+"?action=estado_ingresos");
+    var ya=((est&&est.meses)||[]).filter(function(x){return x.anio==anio&&x.mes==mes;});
+    if(ya.length){ if(!confirm("Aviso: "+mm+" ya se cargó el "+(ya[0].cargado||"?")+". ¿Volver a cargarlo y reemplazarlo?")) return; }
+    var pad=function(n){return("0"+n).slice(-2);};
+    var ld=new Date(anio,mes,0).getDate();
+    var sd=anio+"-"+pad(mes)+"-01",ed=anio+"-"+pad(mes)+"-"+pad(ld);
+    var base=location.origin+"/Wansoft.Web/";
+    var payload={action:"ventas_mes",anio:anio,mes:mes,sucursales:[]};
+    for(var s in SUC){
+      var r=await fetch(base+"Reports/Export",{method:"POST",headers:{"X-Requested-With":"XMLHttpRequest"},body:new URLSearchParams({subsidiaryId:SUC[s],startDate:sd,endDate:ed})});
+      var j=await r.json();
+      if(j.MessageType!=1||!j.fileBase64){alert("No se pudo bajar "+s+": "+(j.Message||"sin archivo"));return;}
+      payload.sucursales.push({sucursal:s,fileBase64:j.fileBase64});
+    }
+    await fetch(EXEC,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+    await new Promise(function(r){setTimeout(r,3500);});
+    var est2=await jsonp(EXEC+"?action=estado_ingresos");
+    var got=((est2&&est2.meses)||[]).filter(function(x){return x.anio==anio&&x.mes==mes;});
+    if(got.length){
+      var t=got.map(function(x){return "  - "+x.sucursal+": $"+Number(x.total).toLocaleString("es-MX",{minimumFractionDigits:2});}).join("\n");
+      alert("Listo, "+mm+" cargado:\n"+t+"\n\nYa aparece en la hoja de Ingresos.");
+    } else { alert("Enviado. En un momento aparece en la hoja de Ingresos."); }
+  }catch(e){alert("Hubo un error: "+e+". ¿Estás dentro de Wansoft con sesión abierta?");}
+}
+
+/* generar el bookmarklet y engancharlo al botón y a la caja de copiar */
+(function(){
+  var code="javascript:("+CARGAR.toString().replace(/__EXEC__/,EXEC).replace(/[\r\n]+/g," ")+")();";
+  document.getElementById("bm").setAttribute("href",code);
+})();
+
+/* estado en la plataforma: última carga, mes anterior, tabla */
+function jsonpPage(u){return new Promise(function(res){var cb="pg"+Math.floor(Math.random()*1e9);window[cb]=function(d){res(d);try{delete window[cb];}catch(e){}sc.parentNode.removeChild(sc);};var sc=document.createElement("script");sc.onerror=function(){res(null);};sc.src=u+(u.indexOf("?")<0?"?":"&")+"callback="+cb;document.body.appendChild(sc);});}
+async function cargarEstado(){
+  var est=await jsonpPage(EXEC+"?action=estado_ingresos");
+  var pill=document.getElementById("ultimaPill");
+  var em=document.getElementById("estadoMes"), eh=document.getElementById("estadoHint");
+  if(!est){ pill.textContent="última carga: (sin conexión)"; em.textContent="No se pudo consultar."; return; }
+  pill.textContent="última carga: "+(est.ultima||"nunca");
+  var d=new Date();d.setDate(1);d.setMonth(d.getMonth()-1);
+  var anio=d.getFullYear(),mes=d.getMonth()+1;
+  var nombre=MESES[mes]+" "+anio;
+  var loaded=(est.meses||[]).filter(function(x){return x.anio==anio&&x.mes==mes;});
+  if(loaded.length){
+    em.className="status ok";
+    em.innerHTML="✓ "+nombre+" ya está cargado";
+    eh.textContent="Se cargó el "+(loaded[0].cargado||"?")+". No hace falta volver a cargarlo.";
+  }else{
+    em.className="status pend";
+    em.innerHTML="● "+nombre+" está pendiente";
+    eh.textContent="Entra a Wansoft y dale al botón para cargarlo.";
+  }
+  var meses=est.meses||[];
+  var hastaEl=document.getElementById("hasta");
+  if(meses.length){
+    var top=meses.reduce(function(a,b){return (b.anio*12+b.mes)>(a.anio*12+a.mes)?b:a;});
+    hastaEl.textContent=MESES[top.mes]+" "+top.anio;
+  }else{ hastaEl.textContent="sin datos aún"; }
+  if(!meses.length){ document.getElementById("tabla").innerHTML='<p class="muted">Aún no hay ventas cargadas.</p>'; return; }
+  var rows=meses.map(function(x){
+    return "<tr><td>"+MESES[x.mes]+" "+x.anio+"</td><td>"+x.sucursal+"</td><td class='num mono'>"+fmt(x.total)+"</td><td class='muted'>"+(x.cargado||"")+"</td></tr>";
+  }).join("");
+  document.getElementById("tabla").innerHTML="<table><tr><th>Mes</th><th>Sucursal</th><th class='num'>Ingreso</th><th>Cargado</th></tr>"+rows+"</table>";
+}
+cargarEstado();
+</script>
+</body>
+</html>
