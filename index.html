@@ -23,6 +23,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .wrap{max-width:600px;margin:0 auto;padding:30px 20px 132px}
 ::selection{background:var(--accent-weak)}
 
+.topnav{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:20px}
+.topnav a{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2);text-decoration:none;transition:.15s}
+.topnav a.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(44,40,31,.14)}
 .masthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
 .eyebrow{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
 .wordmark{font-family:var(--script);font-weight:700;font-size:42px;line-height:.9;letter-spacing:.01em;color:var(--accent)}
@@ -76,7 +79,7 @@ textarea{resize:vertical;min-height:46px}
 .detect .lnk{color:var(--accent-d);font-weight:600;cursor:pointer;font-size:12.5px;border-bottom:1px solid rgba(70,78,49,.35);margin-left:8px;white-space:nowrap}
 @keyframes pop{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 
-.searchbox{position:relative;margin-top:12px;display:none}.searchbox.on{display:block}
+.searchbox{position:relative;margin-top:12px;display:block}.searchbox.on{display:block}
 .results{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border-radius:12px;max-height:240px;overflow:auto;box-shadow:0 20px 44px -16px rgba(44,40,31,.35),0 0 0 1px var(--line);display:none}
 .results.open{display:block}
 .ritem{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
@@ -120,12 +123,12 @@ textarea{resize:vertical;min-height:46px}
 </head>
 <body>
 <div class="wrap">
+  <div class="topnav"><a class="active">✍️ Captura</a><a href="estado-cuenta.html">🏦 Estado de cuenta</a></div>
   <header class="masthead">
     <div class="mast-left">
       <div class="eyebrow">Captura · Cítrico</div>
       <div class="wordmark">Cítrico</div>
       <div class="tagline">un registro, una pausa, un café</div>
-      <a href="estado-cuenta.html" style="display:inline-block;margin-top:9px;font-size:12.5px;color:var(--accent-d);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(70,78,49,.3)">↑ Importar estado de cuenta</a>
     </div>
     <div class="mast-right">
       <span class="pill" id="connPill">● sin conectar</span>
@@ -158,14 +161,15 @@ textarea{resize:vertical;min-height:46px}
     <input type="text" id="desc" placeholder="Ej: 3kg queso oaxaca · pago de luz · nómina Alberto · reparación licuadora" autocomplete="off">
     <div class="hint">Escribe con tus palabras. Al terminar, se corrige el formato y se asigna el código contable.</div>
     <div class="detect" id="detect"></div>
-    <div class="searchbox" id="searchbox"><input type="text" id="satSearch" placeholder="Busca por código o nombre SAT..." autocomplete="off"><div class="results" id="satResults"></div></div>
+    <label class="lb" style="margin-top:16px">O busca en el catálogo SAT (la lista te ayuda a decidir)</label>
+    <div class="searchbox" id="searchbox"><input type="text" id="satSearch" placeholder="Código o nombre: 601.56 mantenimiento, insumos, 501..." autocomplete="off"><div class="results" id="satResults"></div></div>
     <div class="qrow" id="quick"></div>
   </section>
 
   <section class="panel">
     <div class="p-head"><div class="p-num">04</div><div class="p-title">Proveedor y tipo</div></div>
     <div class="grid g2">
-      <div><label class="lb">Proveedor / Origen</label><input type="text" id="proveedor" placeholder="Nombre del proveedor..."></div>
+      <div><label class="lb">Proveedor / Origen</label><input type="text" id="proveedor" list="proveedores" placeholder="Escribe o elige de tu lista..." autocomplete="off"></div>
       <div><label class="lb req">Tipo de movimiento</label><div class="seg" id="tipo"><button class="gasto" data-v="Gasto">Gasto</button><button class="ingreso" data-v="Ingreso">Ingreso</button></div></div>
     </div>
   </section>
@@ -211,6 +215,7 @@ textarea{resize:vertical;min-height:46px}
   </section>
 </div>
 
+<datalist id="proveedores"><option value="BANBAJIO"><option value="CÍTRICO"><option value="PANADERÍA JALAPA"><option value="CHEDRAUI"><option value="CARNICERÍA VILLAFAÑA"><option value="FRUTERÍA LA PRESA"><option value="CARNICERÍA EL AMIGO PANCHO"><option value="MERCADO LIBRE"><option value="TORTILLERÍA EL MALUCO"><option value="ALPURA"><option value="SAMS"><option value="SUPERALES"><option value="FRUTERÍA LA HUERTA"><option value="SERVICIO PARA LLEVAR MAC"><option value="CRYSPURA"><option value="GAS BUTANO DEL BAJIO SA DE CV"><option value="TORTILLERIA MALUCO"><option value="COSTCO"><option value="ADRIANA LÁCTEOS"><option value="CITRICO"><option value="FRUTERÍA SANTA FE"><option value="CADENA COMERCIAL OXXO"><option value="COMIDA DE PERSONAL"><option value="LA BODEGUITA DEL MAR"><option value="HUEVO LIBRE PASTOREO"><option value="HOJA DE LIMÓN"><option value="ARROPLAST"><option value="PROPIMEX S. DE R.L. DE C.V."><option value="A SU GUSTO"><option value="ELIGIO MENA"><option value="CREMERÍA EL MORO"><option value="LA HORMIGUITA"><option value="PANADERIA JALAPA"><option value="BALNEARIO Y MANANTIALES DE LOURDES S.A DE C.V"><option value="TORTILLERÍA MALUCO"><option value="COMERCIAL CITY FRESKO"><option value="LA DISTRIBUIDORA AL SAGRADO PAN S.A DE C.V"><option value="PAPELERÍA IMAGINA"><option value="CENTRO AMOR A LA VIDA"><option value="CERVECERIA CUACTEMOC MOCTEZUMA"><option value="SANCTIAMEN"><option value="AMAZON"><option value="COMIDA DE PERSONAL A/B"><option value="WANSOFT API DE C.V"><option value="CENTRO COMERCIAL"><option value="BORJA"><option value="EMERGENCIA"><option value="MEGA GASOLINERAS S.A DE C.V"><option value="ICE GANG"><option value="NATURALIA"><option value="TERRA MANO CAFE SA DE CV"><option value="ALVARO ALFREDO AVILA"><option value="MEGACABLE"><option value="GRUPO AMOR A LA VIDA"><option value="CERVECERIA CABECILLA D LEON S.A DE C.V"><option value="SAT-TESOFE"><option value="GRUPO AIZMA Y ALTURAS SA DE CV"><option value="LA COMER"><option value="POCIMAS"><option value="VIÑA DEL BAJIO"><option value="COMIDA DEL PERSONAL"><option value="SISTEMA MUNICIPAL DE AGUA POTABLE Y ALCANTARILLADO DE GUANAJUATO"><option value="GOBIERNO DEL ESTADO DE GUANJUATO"><option value="CORTES FINOS GALINDO SA DE CV"><option value="CARDIF SEGUROS POL"><option value="SPOTIFY"><option value="PAGO CUOTA OBRERO PATRONAL PAGO SIPARE"><option value="CAFÉ JIRIBILLA"><option value="JAVIER EDUARDO PEREZ ORDAZ"><option value="CFE"><option value="PULPA MIA"><option value="MA EUGENIA VILLALOBOS RODRIGUEZ"><option value="CARNE MART"><option value="PASE, SERVICIOS ELECTRONICOS S.A. DE C.V"><option value="FERRES. COM"><option value="NASKY S DE RL E CV"><option value="FRUTERÍA LAS RUINAS"><option value="CARPI"><option value="ABARROTES SAN JORGE"><option value="UBER"><option value="MASKY S DE RL DE CV"><option value="LALAVANDERIA"><option value="DON CHAMBON"><option value="CAROLINA GUTIERREZ SILVA"><option value="COMIDA DE PERSONAL A"><option value="COMIDA DE PERSONAL B"><option value="PROCREDIT-FINANZIA S.A DE"><option value="GRUPO ZORRO ABARROTERO S. DE R.L. DE C.V"><option value="EL GREGARIO"><option value="ADMINISTRACIÓN FINANZAS Y CONTABILIDAD S.A.S. DE C.V."><option value="DESTILERIA JONUCO SA DE CV"><option value="NASKY S DE RL DE CV"><option value="CARNICERRÍA EL AMIGO PANCHO"><option value="GOBIERNO DEL ESTADO DE GTO"><option value="LICORES REGIOS SA DE CV"><option value="LUDOVIC"><option value="LAURA FERNANDA RUIZ SORIA"><option value="PASE, SERVICIOS ELECTRONICOS"><option value="FIDEL ALEJANDRO RAMIREZ RAMBLAS"><option value="CECILIA LICIAGA"><option value="REFRIBASA"><option value="CONSORCIO CELARA S.A DE C.V"><option value="DESPACHO CONTABLE RENDON"><option value="PROHYGIENE"><option value="ADRIANA LACTEOS"><option value="ENERGETICOS DEL ALTIPLANO"><option value="LIBOR"><option value="STUDIO GLASS SA DE CV"><option value="ALM ANFORA LEON DELT"><option value="IGANACIO ZARATE GONZALEZ"><option value="DRIFFTER PUBLICITY SA DE CV"><option value="OXXO"><option value="CECI GENCO"><option value="MARIA JOSE CABRERA IBARRA"><option value="ISA"><option value="LA DISTRIBUIDORA SAGRADO PAN"><option value="SAM´S"><option value="MANTENIMIENTO"><option value="GOBIERNO DEL ESTADO DE GUANAJUATO"><option value="MA DEL SOCORRO GOMEZ NUÑO"><option value="TONY TIENDAS, S.A. DE C.V."><option value="TAXI"><option value="H&amp;M"><option value="IGNACIO VARGAS LUGO"><option value="ISABELLA RUIZ SORIA"><option value="BABACU S.A DE C.V"><option value="GRUPO ZORRO ABARROTERO S. DE R.L. DE C.V."><option value="CITY FRESCO"><option value="IBALMA, SA DE CV"><option value="COCA-COLA FEMSA"><option value="ELITE MOTORS S.A. DE C.V."><option value="CAFÉ FOTTORIE"><option value="CASETAS"><option value="ABARROTES LA ABEJITA"><option value="ABTS SUPREMO LUISA MAR"><option value="FRUTERIA LA PRESA"><option value="FIXCOFFEE"><option value="GASTROART"><option value="LIVERPOOL"><option value="PAPELERÍA LA PRESA"><option value="DESECHABLES CAMILA"><option value="FLORES"><option value="MARIA JOSE TAPIA HERNANDEZ"><option value="OXXO GAS"><option value="MI FERRE"><option value="WE CARE DESECHABLES"><option value="TIENDITA CÍTRICO"><option value="MANTENIMIENTO AUTOMOTRIZ DE A"><option value="ALEXANDRE MARIE BRUNO"><option value="SASTRE"><option value="DÍA DE PRUEBA"><option value="DEPOSITO FACTURAS EN EFECTIVO"><option value="CERRAJERO"><option value="SERVICIOS GASOLINEROS DE MEXICO"><option value="JORGE LUIS ROCHA CENTENO"><option value="PROTECCION CIVIL"><option value="PROFESIONALES EN LIMPIEZA E HIGIENE DEL BAJIO"><option value="SILVIA TAPIA"><option value="SONNELECTRON SAPI DE CV"><option value="COMERCIAL CITY"><option value="JOSE JESUS AGUILAR RODRIGUEZ"><option value="SOLUCIONES PRACTICAS SA DE CV"><option value="LUIS FERNANDO MORALES ZAVALA"><option value="PAPELERIA IMAGINA"><option value="EVENTO ESPECIAL"><option value="LUDO VIC"><option value="DECORACIÓN"><option value="ABSORCION DE GASTOS DE PRESA"><option value="SORIANA"><option value="MICHOACAN"><option value="COMIDA DEL PERSONAL TURNO A"><option value="COMIDA DE PERSONAL TURNO B"><option value="JHAZ"><option value="SISTEMA PARA EL DESARROLLO INTEGRAL DE LA FAMILIA DEL ESTADO DE GUANAJUATO"><option value="MUNICIPIO DE GUANAJUATO"><option value="CONSTRUCTORA EASSEN SA DE CV"><option value="LUIS GERARDO ORTIZ"><option value="BIBIANA MEDINA LAING"><option value="AGUA CAFE Y HIELO SA DE CV"><option value="ERNESTO VENTURA ABAD"></datalist>
 <div class="submit"><div class="inner" style="display:flex;gap:10px"><button class="btn-clear" id="clear">Limpiar</button><button class="btn-main" id="save">Generar registro completo</button></div></div>
 <div class="toast" id="toast"></div>
 <script>

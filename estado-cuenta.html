@@ -11,6 +11,9 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
 .wrap{max-width:680px;margin:0 auto;padding:28px 18px 130px}
+.topnav{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:20px}
+.topnav a{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2);text-decoration:none;transition:.15s}
+.topnav a.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(44,40,31,.14)}
 .masthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
 .eyebrow{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .wordmark{font-family:var(--script);font-weight:700;font-size:38px;line-height:.9;color:var(--accent)}
@@ -50,6 +53,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .badge.tras{background:#F3E7E4;color:#9A5D53}.badge.dud{background:#F7EFD9;color:#8A6A1C}
 .actionbar{position:fixed;left:0;right:0;bottom:0;padding:14px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(243,236,221,0),var(--bg) 42%)}
 .actionbar .inner{max-width:680px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.btn-clear{padding:16px 18px;background:var(--surface);color:var(--ink2);border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap;box-shadow:0 1px 3px rgba(44,40,31,.09)}
+.btn-clear.armed{background:#F3E7E1;color:var(--red)}
 .btn-main{flex:1;padding:16px;background:var(--accent);color:#F7F3E8;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans);box-shadow:0 8px 20px -8px rgba(88,97,66,.6)}
 .btn-main:disabled{opacity:.5;box-shadow:none}
 .linkback{display:inline-block;margin-top:14px;color:var(--accent-d);font-weight:600;font-size:13px;text-decoration:none;border-bottom:1px solid rgba(70,78,49,.3)}
@@ -60,6 +65,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 </style></head>
 <body>
 <div class="wrap">
+  <div class="topnav"><a href="index.html">✍️ Captura</a><a class="active">🏦 Estado de cuenta</a></div>
   <div class="masthead">
     <div><div class="eyebrow">Cítrico · Estado de cuenta</div><div class="wordmark">Importar gastos</div><div class="tagline">del banco a tu base, ya clasificados</div></div>
     <span class="pill" id="connPill">●</span>
@@ -81,10 +87,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 
   <div id="summary"></div>
   <div id="results"></div>
-  <a class="linkback" href="index.html">← Volver a captura manual</a>
 </div>
 
 <div class="actionbar" id="actionbar" style="display:none"><div class="inner">
+  <button class="btn-clear" id="clearImp">Limpiar</button>
   <button class="btn-main" id="accept">Aceptar e ingresar</button>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -152,6 +158,7 @@ function extractGastos(lines){
   const startRe=/^\s*(\d{1,2})\s+(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\b/;
   const amtRe=/\$\s*(-?[\d,]+\.\d{2})/g;
   let year=((lines.join(' ').match(/DE\s+(20\d{2})/))||[])[1]||String(new Date().getFullYear());
+  let acct=((lines.join(' ').match(/NUMERO DE CLIENTE:?\s*(\d{6,})/i))||[])[1]||'';
   let prev=null;
   for(const ln of lines){ if(/SALDO INICIAL/i.test(ln)){ const a=[...ln.matchAll(amtRe)]; if(a.length){prev=num(a[a.length-1][1]);break;} } }
   let movs=[],cur=null; const flush=()=>{ if(cur)movs.push(cur); cur=null; };
@@ -161,7 +168,8 @@ function extractGastos(lines){
       let head = found.length? ln.slice(m[0].length, found[0].index) : ln.slice(m[0].length);
       head=head.replace(/^\s*\d{4,}\s*/,'').trim();
       const saldo=found.length?num(found[found.length-1][1]):null;
-      cur={mes:m[2],dia:+m[1],saldo,desc:head?[head]:[]};
+      const rm=ln.slice(m[0].length).match(/^\s*(\d{4,})/); const ref=rm?rm[1]:'';
+      cur={mes:m[2],dia:+m[1],saldo,ref,acct,desc:head?[head]:[]};
     } else if(cur){ const t=ln.trim(); if(!t||SKIP.some(s=>t.includes(s))||t.indexOf('FECHA')===0) continue; cur.desc.push(t); }
   }
   flush();
@@ -206,7 +214,7 @@ async function handleFile(file){
     ITEMS=raw.map((mv,i)=>{ const cl=classifyBank(mv.desc); const [g,e]=grpEst(cl.code); return {
       idx:i, fecha:`${mv.dia} ${mv.mes}`, dia:mv.dia, mes:mv.mes, year:mv.year, monto:mv.monto, raw:mv.desc.join(' '),
       concepto:cleanConcept(mv.desc), code:cl.code, cuenta:(CODEMAP[cl.code]||{}).name||'', grupo:g, estado:e,
-      clase:cl.clase, conf:cl.conf, nota:cl.nota,
+      clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||'',
       include: cl.clase==='Gasto' && !!cl.code
     }; });
     render();
@@ -265,7 +273,7 @@ function send(){
       producto:it.concepto, proveedor:it.concepto,
       efectivo:0, debito_credito: pos==='debcre'?it.monto:0, tpv:0, amex:0, transferencia: pos==='transf'?it.monto:0,
       total:it.monto, flujo: isTras?0:-it.monto,
-      folio_factura:'', notas:'Importado de estado de cuenta BanBajío', real_banbajio:0, pagado:'Sí', observaciones:'', capturado_por:'Importación banco' };
+      folio_factura:'', notas:('BanBajío · cliente '+(it.acct||'?')+' · ref '+(it.ref||'-')+' · '+it.dia+' '+it.mes+' '+it.year), real_banbajio:0, pagado:'Sí', observaciones:'', capturado_por:'Importación banco' };
     return rec;
   });
   $("accept").disabled=true; $("accept").innerHTML='<span class="spin"></span>Enviando '+records.length+'...';
@@ -275,5 +283,11 @@ function send(){
   if(window.google&&google.script&&google.script.run){ google.script.run.withSuccessHandler(ok).withFailureHandler(err).saveRecords(payload); }
   else{ fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(ok).catch(err); }
 }
+let _ci=false,_cit;
+$("clearImp").addEventListener("click",function(){
+  if(!_ci){_ci=true;$("clearImp").textContent="¿Seguro?";$("clearImp").classList.add("armed");_cit=setTimeout(function(){_ci=false;$("clearImp").textContent="Limpiar";$("clearImp").classList.remove("armed");},3000);return;}
+  clearTimeout(_cit);_ci=false;$("clearImp").textContent="Limpiar";$("clearImp").classList.remove("armed");
+  ITEMS=[];$("results").innerHTML="";$("summary").innerHTML="";$("status").textContent="";$("file").value="";$("actionbar").style.display="none";
+});
 let tmo; function toast(m,ok){ const t=$("toast"); t.textContent=m; t.className='toast show '+(ok?'ok':'err'); clearTimeout(tmo); tmo=setTimeout(()=>t.classList.remove('show'),4500); }
 </script></body></html>
