@@ -131,7 +131,7 @@ textarea{resize:vertical;min-height:46px}
       <div class="tagline">un registro, una pausa, un café</div>
     </div>
     <div class="mast-right">
-      <span class="pill" id="connPill">● sin conectar</span>
+      <span class="pill" id="connPill">● sin conexión</span>
       <div class="who"><input type="text" id="capturador" placeholder="¿Quién captura?"><button class="gear" id="gearBtn" title="Conexión">⚙</button></div>
     </div>
   </header>
@@ -145,7 +145,7 @@ textarea{resize:vertical;min-height:46px}
   <section class="panel">
     <div class="p-head"><div class="p-num">01</div><div class="p-title">Sucursal</div><div class="p-side" id="fuenteLbl">Fuente —</div></div>
     <label class="lb req">Selecciona la sucursal</label>
-    <div class="seg" id="sucursal"><button data-v="CÍTRICO LA PRESA">La Presa</button><button data-v="CÍTRICO SUR">Sur</button></div>
+    <div class="seg" id="sucursal"><button data-v="CÍTRICO LA PRESA">🍋 La Presa</button><button data-v="CÍTRICO SUR">🍊 Sur</button></div>
   </section>
 
   <section class="panel">
@@ -236,7 +236,7 @@ $("scriptUrl").value=BAKED_URL; function getUrl(){var v=$("scriptUrl").value.tri
 $("scriptUrl").addEventListener("input",e=>{lsSet("citrico_url",e.target.value.trim());refreshConn();});
 $("capturador").addEventListener("input",e=>lsSet("citrico_cap",e.target.value.trim()));
 $("gearBtn").addEventListener("click",()=>$("cfg").classList.toggle("on"));
-function refreshConn(){const ok=/^https:\/\/script\.google\.com\/.+\/exec/.test(getUrl());$("connPill").textContent=ok?"● conectado":"● sin conectar";$("connPill").style.color=ok?"#2E7D4F":"#8A7B70";if(!ok)$("cfg").classList.add("on");}
+function refreshConn(){const ok=/^https:\/\/script\.google\.com\/.+\/exec/.test(getUrl());$("connPill").textContent=ok?"● en línea":"● sin conexión";$("connPill").style.color=ok?"#2E7D4F":"#8A7B70";if(!ok)$("cfg").classList.add("on");}
 refreshConn();
 
 function segInit(w,k,cb){document.querySelectorAll("#"+w+" button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#"+w+" button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");state[k]=b.dataset.v;if(cb)cb(b.dataset.v);}));}
@@ -353,7 +353,7 @@ function clearAll(){
 }
 var _clrArmed=false,_clrT;
 $("clear").addEventListener("click",function(){
-  if(!_clrArmed){_clrArmed=true;$("clear").textContent="¿Seguro?";$("clear").classList.add("armed");
+  if(!_clrArmed){_clrArmed=true;$("clear").textContent="¿Confirmas?";$("clear").classList.add("armed");
     _clrT=setTimeout(function(){_clrArmed=false;$("clear").textContent="Limpiar";$("clear").classList.remove("armed");},3000);return;}
   clearTimeout(_clrT);_clrArmed=false;$("clear").textContent="Limpiar";$("clear").classList.remove("armed");
   clearAll();toast("Formulario limpiado",true);
