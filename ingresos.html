@@ -50,6 +50,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .mono{font-variant-numeric:tabular-nums}
 textarea{width:100%;height:70px;border:1px solid var(--line);border-radius:10px;padding:9px;font-family:ui-monospace,monospace;font-size:10.5px;background:#fbf8f0;color:var(--ink2)}
 .muted{color:var(--muted)}
+.cob-year{display:flex;align-items:center;gap:5px;margin:7px 0;flex-wrap:wrap}
+.cob-year b{width:40px;font-variant-numeric:tabular-nums;font-size:13px}
+.cob-m{flex:1;min-width:30px;text-align:center;font-size:10px;padding:6px 0;border-radius:7px;background:var(--field);color:var(--muted)}
+.cob-m.on{background:var(--accent);color:#fff;font-weight:600}
 </style>
 </head>
 <body>
@@ -77,7 +81,14 @@ textarea{width:100%;height:70px;border:1px solid var(--line);border-radius:10px;
   </div>
 
   <div class="panel">
-    <div class="p-head"><span class="p-num">02</span><span class="p-title">Cargar el mes</span></div>
+    <div class="p-head"><span class="p-num">02</span><span class="p-title">Cobertura de ingresos</span></div>
+    <div id="cobResumen" class="status ok" style="margin-bottom:14px">Revisando…</div>
+    <div id="cobertura"></div>
+    <p class="hint" style="margin-top:6px">Verde = mes cargado. Gris = pendiente.</p>
+  </div>
+
+  <div class="panel">
+    <div class="p-head"><span class="p-num">03</span><span class="p-title">Cargar el mes</span></div>
     <p style="margin-top:2px"><b>Cada mes:</b></p>
     <ol>
       <li><span class="paso">1</span> Abre Wansoft e inicia sesión.
@@ -95,7 +106,7 @@ textarea{width:100%;height:70px;border:1px solid var(--line);border-radius:10px;
   </div>
 
   <div class="panel">
-    <div class="p-head"><span class="p-num">03</span><span class="p-title">Verificación · meses cargados</span></div>
+    <div class="p-head"><span class="p-num">04</span><span class="p-title">Detalle por mes</span></div>
     <div id="tabla"><p class="muted">Cargando…</p></div>
   </div>
 </div>
@@ -154,32 +165,64 @@ async function cargarEstado(){
   var est=await jsonpPage(EXEC+"?action=estado_ingresos");
   var pill=document.getElementById("ultimaPill");
   var em=document.getElementById("estadoMes"), eh=document.getElementById("estadoHint");
-  if(!est){ pill.textContent="última carga: (sin conexión)"; em.textContent="No se pudo consultar."; return; }
-  pill.textContent="última carga: "+(est.ultima||"nunca");
+  var hastaEl=document.getElementById("hasta");
+  if(!est){ pill.textContent="sin conexión"; em.textContent="No se pudo consultar."; return; }
+  var meses=est.meses||[];
+  var AB=["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+  // actualizada hasta (mes más reciente)
+  var top=meses.length? meses.reduce(function(a,b){return (b.anio*12+b.mes)>(a.anio*12+a.mes)?b:a;}) : null;
+  var hastaTxt= top? (MESES[top.mes]+" "+top.anio) : "sin datos aún";
+  hastaEl.textContent=hastaTxt;
+  pill.textContent= top? ("actualizada hasta: "+hastaTxt) : "sin datos aún";
+
+  // estado del mes anterior
   var d=new Date();d.setDate(1);d.setMonth(d.getMonth()-1);
   var anio=d.getFullYear(),mes=d.getMonth()+1;
   var nombre=MESES[mes]+" "+anio;
-  var loaded=(est.meses||[]).filter(function(x){return x.anio==anio&&x.mes==mes;});
+  var loaded=meses.filter(function(x){return x.anio==anio&&x.mes==mes;});
   if(loaded.length){
-    em.className="status ok";
-    em.innerHTML="✓ "+nombre+" ya está cargado";
-    eh.textContent="Se cargó el "+(loaded[0].cargado||"?")+". No hace falta volver a cargarlo.";
+    em.className="status ok"; em.innerHTML="✓ "+nombre+" ya está cargado";
+    eh.textContent=(loaded[0].cargado? ("Se cargó el "+loaded[0].cargado+". ") : "")+"No hace falta volver a cargarlo.";
   }else{
-    em.className="status pend";
-    em.innerHTML="● "+nombre+" está pendiente";
+    em.className="status pend"; em.innerHTML="● "+nombre+" está pendiente";
     eh.textContent="Entra a Wansoft y dale al botón para cargarlo.";
   }
-  var meses=est.meses||[];
-  var hastaEl=document.getElementById("hasta");
-  if(meses.length){
-    var top=meses.reduce(function(a,b){return (b.anio*12+b.mes)>(a.anio*12+a.mes)?b:a;});
-    hastaEl.textContent=MESES[top.mes]+" "+top.anio;
-  }else{ hastaEl.textContent="sin datos aún"; }
+
+  // cobertura: rejilla de meses por año
+  var byY={}; meses.forEach(function(x){ (byY[x.anio]=byY[x.anio]||{})[x.mes]=true; });
+  var years=Object.keys(byY).sort(function(a,b){return b-a;});
+  var cob="";
+  years.forEach(function(y){
+    cob+='<div class="cob-year"><b>'+y+'</b>';
+    for(var m=1;m<=12;m++){ cob+='<div class="cob-m'+(byY[y][m]?" on":"")+'">'+AB[m]+'</div>'; }
+    cob+='</div>';
+  });
+  document.getElementById("cobertura").innerHTML=cob;
+  var partes=years.map(function(y){
+    var ms=Object.keys(byY[y]).map(Number).sort(function(a,b){return a-b;});
+    return ms.length>=12? (y+" completo") : (y+" "+AB[ms[0]]+"–"+AB[ms[ms.length-1]]);
+  });
+  document.getElementById("cobResumen").innerHTML= partes.length? ("✓ Ingresos cargados: "+partes.join(" · ")) : "Aún no hay ingresos cargados.";
+
+  // detalle: año completo -> 1 renglón resumen; año en curso -> por mes
   if(!meses.length){ document.getElementById("tabla").innerHTML='<p class="muted">Aún no hay ventas cargadas.</p>'; return; }
-  var rows=meses.map(function(x){
-    return "<tr><td>"+MESES[x.mes]+" "+x.anio+"</td><td>"+x.sucursal+"</td><td class='num mono'>"+fmt(x.total)+"</td><td class='muted'>"+(x.cargado||"")+"</td></tr>";
-  }).join("");
-  document.getElementById("tabla").innerHTML="<table><tr><th>Mes</th><th>Sucursal</th><th class='num'>Ingreso</th><th>Cargado</th></tr>"+rows+"</table>";
+  var rowsHtml="";
+  years.forEach(function(y){
+    var completo=Object.keys(byY[y]).length>=12;
+    var delAnio=meses.filter(function(x){return x.anio==y;});
+    if(completo){
+      var tot=delAnio.reduce(function(s,x){return s+(x.total||0);},0);
+      rowsHtml+="<tr><td><b>"+y+"</b> <span class='muted'>· ✓ todo el año cargado</span></td><td class='num mono'>"+fmt(tot)+"</td></tr>";
+    }else{
+      var byMonth={};
+      delAnio.forEach(function(x){ byMonth[x.mes]=(byMonth[x.mes]||0)+(x.total||0); });
+      Object.keys(byMonth).map(Number).sort(function(a,b){return a-b;}).forEach(function(m){
+        rowsHtml+="<tr><td>"+MESES[m]+" "+y+"</td><td class='num mono'>"+fmt(byMonth[m])+"</td></tr>";
+      });
+    }
+  });
+  document.getElementById("tabla").innerHTML="<table><tr><th>Periodo</th><th class='num'>Ingreso</th></tr>"+rowsHtml+"</table>";
 }
 cargarEstado();
 </script>
