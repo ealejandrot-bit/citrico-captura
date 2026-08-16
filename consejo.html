@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cítrico · Consejo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3ECDD; --surface:#FCF8EF; --field:#ECE3D0; --field-2:#E4D9C3;
+  --ink:#2C281F; --ink2:#6E6551; --muted:#A99E86; --line:#E7DCC7;
+  --accent:#586142; --accent-d:#464E31; --accent-weak:#E6E9DA;
+  --green:#5E7A54; --red:#B0553A; --rose:#C9A9A4;
+  --ok:#3f7d4e; --warn:#9a6b23; --warn-bg:#f5ecd7; --ok-bg:#e7f0e5; --red-bg:#F3E7E1;
+  --script:"Caveat",cursive;
+  --serif:"Cormorant Garamond",Georgia,serif;
+  --sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:14px; --r-lg:18px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.wrap{max-width:600px;margin:0 auto;padding:30px 20px 60px}
+::selection{background:var(--accent-weak)}
+
+.topnav{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:20px}
+.topnav a{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink2);text-decoration:none;transition:.15s}
+.topnav a.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(44,40,31,.14)}
+
+.masthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:14px}
+.eyebrow{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.wordmark{font-family:var(--script);font-weight:700;font-size:42px;line-height:.9;color:var(--accent)}
+.tagline{font-family:var(--script);color:var(--ink2);font-size:19px;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.02em;padding:6px 12px;border-radius:100px;background:var(--field);color:var(--ink2);font-weight:500;white-space:nowrap}
+@media(max-width:560px){.masthead{flex-direction:column;align-items:stretch;gap:12px}}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.qbtn{padding:9px 14px;border:none;background:var(--field);border-radius:100px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink2);font-family:var(--sans);transition:.14s}
+.qbtn:hover{background:var(--field-2);color:var(--ink)}
+.qbtn:active{transform:scale(.96)}
+.qbtn.primary{background:var(--accent);color:#F7F3E8}
+.qbtn.primary:hover{background:var(--accent-d)}
+.qbtn.on{background:var(--accent);color:#F7F3E8}
+
+.readonly-note{font-size:12.5px;color:var(--ink2);background:var(--accent-weak);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;line-height:1.5}
+.readonly-note.hidden{display:none}
+
+.panel{background:var(--surface);border-radius:var(--r-lg);padding:22px;margin-bottom:14px;box-shadow:0 1px 2px rgba(44,40,31,.04),0 12px 30px -24px rgba(44,40,31,.26)}
+.p-head{display:flex;align-items:baseline;gap:11px;margin-bottom:16px}
+.p-num{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--accent);font-variant-numeric:tabular-nums}
+.p-title{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:0;line-height:1.1}
+.p-side{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;align-self:center;white-space:nowrap}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+/* ---- 01 resumen ejecutivo ---- */
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stat-box{background:var(--field);border-radius:12px;padding:12px 6px;text-align:center}
+.stat-box .n{font-family:var(--serif);font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.stat-box .l{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);font-weight:600;margin-top:5px}
+.stat-box.ok .n{color:var(--ok)} .stat-box.warn .n{color:var(--warn)} .stat-box.red .n{color:var(--red)}
+@media(max-width:480px){.stat-grid{grid-template-columns:repeat(3,1fr)}.stat-box:nth-child(4){grid-column:1}.stat-box:nth-child(5){grid-column:2}}
+
+/* ---- 02 focos rojos ---- */
+.foco{border-left:3px solid var(--red);background:var(--red-bg);border-radius:0 10px 10px 0;padding:10px 13px;margin-bottom:8px;font-size:13.5px}
+.foco .who{color:var(--ink2);font-size:12px;margin-top:2px}
+.foco.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+
+/* ---- 03 avance por socio ---- */
+/* ---- 03 marcador: strikes + avance por persona (estilo beisbol) ---- */
+.marcador-row{display:flex;align-items:center;gap:9px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.marcador-row:last-child{border-bottom:none}
+.strike-circles{display:flex;gap:3px;flex:0 0 auto}
+.strike-circle{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--surface);flex:0 0 auto}
+.strike-circle.on{border-color:var(--red);background:var(--red-bg)}
+.marcador-name{font-weight:700;font-size:12.5px;color:var(--ink);width:64px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.marcador-bar{flex:1;background:var(--field);border-radius:8px;height:9px;overflow:hidden;min-width:30px}
+.marcador-bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.marcador-pct{font-weight:700;font-size:13px;color:var(--ink);min-width:34px;text-align:right;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.marcador-badge{font-size:10px;font-weight:700;color:var(--ink2);background:var(--field);padding:4px 7px;border-radius:100px;min-width:24px;text-align:center;flex:0 0 auto}
+.marcador-row.editable{cursor:pointer}
+.marcador-row.editable:active{background:var(--field)}
+@media(max-width:400px){.marcador-name{width:52px;font-size:11.5px}.strike-circle{width:18px;height:18px}}
+
+/* ---- 04 detalle / acuerdos ---- */
+.seg{display:flex;gap:5px;background:var(--field);border-radius:12px;padding:5px;margin-bottom:14px}
+.seg button{flex:1;min-width:0;padding:10px;border:none;background:transparent;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2);font-family:var(--sans);transition:.16s}
+.seg button.sel{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(44,40,31,.14)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters select{flex:1;min-width:100px;padding:10px 12px;border:none;border-radius:10px;font-size:12.5px;background:var(--field);color:var(--ink);font-family:var(--sans);-webkit-appearance:none;appearance:none}
+.filters select:focus{outline:none;box-shadow:0 0 0 1.5px var(--accent)}
+
+.acuerdo{background:var(--field);border-radius:var(--r);padding:15px 16px;margin-bottom:10px}
+.acuerdo .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.chip{background:var(--surface);border-radius:9px;padding:5px 10px;font-size:11px;color:var(--ink2);font-weight:600;display:inline-block}
+.tag-estatus{display:inline-block;border-radius:9px;padding:5px 10px;font-size:11px;font-weight:700}
+.tag-estatus.pendiente{background:var(--surface);color:var(--ink2)}
+.tag-estatus.progreso{background:var(--warn-bg);color:var(--warn)}
+.tag-estatus.cumplido{background:var(--ok-bg);color:var(--ok)}
+.tag-estatus.atrasado{background:var(--red-bg);color:var(--red)}
+.plazo{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.titulo{margin-top:9px;font-size:14px;line-height:1.5;color:var(--ink)}
+.resp{font-size:12px;color:var(--ink2);margin-top:7px}
+.resp b{color:var(--ink);font-weight:600}
+.avance-bar{background:var(--surface);border-radius:6px;height:7px;margin:10px 0 2px;overflow:hidden}
+.avance-bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.avance-pct{font-size:11.5px;color:var(--ink2);font-weight:600;text-align:right}
+.pct-badge{font-size:12px;font-weight:700;color:var(--accent-d);background:var(--surface);padding:5px 10px;border-radius:9px;white-space:nowrap}
+.nota{font-size:12.5px;color:var(--ink2);margin-top:8px;background:var(--surface);border-radius:9px;padding:8px 10px;white-space:pre-wrap}
+.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.controls select,.controls input[type=number]{padding:9px 10px;border:none;border-radius:9px;font-size:12.5px;background:var(--surface);color:var(--ink);font-family:var(--sans)}
+.controls select{flex:1.4;min-width:110px}
+.controls input[type=number]{width:70px}
+.controls .qbtn{padding:9px 12px;font-size:12px}
+textarea.nota-edit{width:100%;margin-top:8px;padding:10px 11px;border:none;border-radius:9px;font-size:12.5px;background:var(--surface);color:var(--ink);font-family:var(--sans);resize:vertical;min-height:44px}
+.empty{color:var(--muted);font-size:13px;padding:6px 2px}
+
+/* ---- vista ejecutiva compacta (lista, no tarjetas) ---- */
+.exec-list{margin-top:2px}
+.exec-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.exec-row:last-child{border-bottom:none}
+.exec-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.exec-dot.pendiente{background:var(--muted)}
+.exec-dot.progreso{background:var(--warn)}
+.exec-dot.cumplido{background:var(--ok)}
+.exec-dot.atrasado{background:var(--red)}
+.exec-main{flex:1;min-width:0}
+.exec-title{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exec-title.done{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.exec-who{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exec-pct{font-size:12.5px;font-weight:700;color:var(--ink);min-width:36px;text-align:right;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.exec-pct.done{color:var(--ok)}
+.exec-group-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:16px 0 4px}
+.exec-group-label:first-child{margin-top:0}
+
+/* ---- panel nuevo acuerdo ---- */
+label.lb{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px;font-weight:600;margin-top:16px}
+label.lb:first-child{margin-top:0}
+input[type=text],select.full,textarea{width:100%;padding:13px 14px;border:none;border-radius:12px;font-size:15px;background:var(--field);color:var(--ink);font-family:var(--sans);-webkit-appearance:none;appearance:none}
+input:focus,select.full:focus,textarea:focus{outline:none;background:var(--surface);box-shadow:0 0 0 1.5px var(--accent),0 0 0 5px var(--accent-weak)}
+.btn-main{width:100%;padding:15px;background:var(--accent);color:#F7F3E8;border:none;border-radius:14px;font-size:15px;font-weight:600;letter-spacing:.01em;cursor:pointer;font-family:var(--sans);box-shadow:0 8px 20px -8px rgba(88,97,66,.6);transition:.15s;margin-top:18px}
+.btn-main:hover{background:var(--accent-d)}
+.btn-main:active{transform:scale(.99)}
+.btn-clear{width:100%;padding:12px;background:var(--field);color:var(--ink2);border:none;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:8px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);padding:13px 20px;border-radius:12px;color:#F7F3E8;font-weight:500;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;max-width:90%;text-align:center;box-shadow:0 14px 34px -10px rgba(0,0,0,.4)}
+.toast.ok{background:var(--accent)}.toast.err{background:var(--red)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.hidden{display:none}
+footer{font-size:11px;color:var(--muted);margin-top:20px;text-align:center;letter-spacing:.02em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topnav">
+    <a href="index.html">✍️ Captura</a>
+    <a href="estado-cuenta.html">🏦 Estado de cuenta</a>
+    <a href="ingresos.html">🍋 Ingresos</a>
+    <a class="active">📋 Consejo</a>
+  </div>
+
+  <header class="masthead">
+    <div>
+      <div class="eyebrow">Consejo de Administración · Cítrico</div>
+      <div class="wordmark">Cítrico</div>
+      <div class="tagline">quién cumple, qué falta, cómo vamos</div>
+    </div>
+    <div class="pill" id="pillResumen">cargando…</div>
+  </header>
+
+  <div class="toolbar">
+    <button class="qbtn primary" id="btnEdit">🔒 Editar</button>
+    <button class="qbtn" id="btnReload">↻ Recargar</button>
+    <button class="qbtn" id="btnCopy">📋 Copiar resumen</button>
+    <button class="qbtn hidden" id="btnNew">＋ Nuevo acuerdo</button>
+  </div>
+
+  <div class="readonly-note" id="lockNote">🔒 Compartido — solo lectura; toca <b>Editar</b> e ingresa el código para modificar (se guarda para todos).</div>
+
+  <!-- 01 · RESUMEN EJECUTIVO -->
+  <div class="panel">
+    <div class="p-head"><span class="p-num">01</span><span class="p-title">Resumen ejecutivo</span></div>
+    <div class="stat-grid" id="statGrid"></div>
+    <p class="hint">Consolidado de la Primera Reunión del Consejo · 27 de junio de 2026.</p>
+  </div>
+
+  <!-- 02 · MARCADOR: STRIKES Y AVANCE -->
+  <div class="panel">
+    <div class="p-head"><span class="p-num">⚾</span><span class="p-title">Marcador · strikes y avance</span></div>
+    <p class="hint" style="margin-top:-8px;margin-bottom:10px">strikes a la izquierda · avance a la derecha</p>
+    <div id="strikesBox"></div>
+    <p class="hint">3 strikes = acuerdo reincidente sin cumplir. Los círculos son editables en modo edición.</p>
+  </div>
+
+  <!-- 03 · FOCOS ROJOS -->
+  <div class="panel">
+    <div class="p-head"><span class="p-num">03</span><span class="p-title">Focos rojos</span><span class="p-side">pendientes y atrasados</span></div>
+    <div id="focosRojos"></div>
+  </div>
+
+  <!-- panel nuevo acuerdo (solo en modo edición) -->
+  <div class="panel hidden" id="panelNew">
+    <div class="p-head"><span class="p-num">＋</span><span class="p-title">Nuevo acuerdo</span></div>
+    <label class="lb">Título</label>
+    <input type="text" id="fTitulo" placeholder="¿Qué se acordó?">
+    <label class="lb">Categoría</label>
+    <select class="full" id="fCategoria">
+      <option>Comercial</option><option>Incentivos</option><option>Operación</option>
+      <option>Menú</option><option>Redes</option><option>Compras</option>
+      <option>Gobernanza</option><option>Otro</option>
+    </select>
+    <label class="lb">Responsable(s) — separa con coma</label>
+    <input type="text" id="fResp" placeholder="Isabella, Álvaro">
+    <label class="lb">Plazo</label>
+    <input type="text" id="fPlazo" placeholder="Julio 2026">
+    <button class="btn-main" id="fSave">Guardar acuerdo</button>
+    <button class="btn-clear" id="fCancel">Cancelar</button>
+  </div>
+
+  <!-- 04 · DETALLE DE ACUERDOS -->
+  <div class="panel">
+    <div class="p-head"><span class="p-num">04</span><span class="p-title">Detalle de acuerdos</span></div>
+    <div class="seg">
+      <button class="sel" id="tabExec">⚡ Ejecutivo</button>
+      <button id="tabDetail">Detalle</button>
+    </div>
+
+    <div id="viewExec"></div>
+
+    <div id="viewDetail" class="hidden">
+      <div class="filters">
+        <select id="fEstatus"><option value="">Por estatus</option><option value="pendiente">Pendiente</option><option value="progreso">En progreso</option><option value="cumplido">Cumplido</option><option value="atrasado">Atrasado</option></select>
+        <select id="fPersona"><option value="">Por persona</option></select>
+        <select id="fTema"><option value="">Por tema</option></select>
+      </div>
+      <div id="cards"></div>
+      <p class="hint" style="margin:16px 0 6px">🏆 Cumplidos</p>
+      <div id="cardsCumplidos"></div>
+    </div>
+  </div>
+
+  <footer>Grupo Cítrico · documento vivo del Consejo de Administración</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — mismo backend que citrico-captura, instancia "citrico"
+   ============================================================ */
+const EXEC_URL = "https://script.google.com/macros/s/AKfycbw9DVu9HkxmuS0pwrbPrU4IajL1J-TaIKTblAUjwmqAvP6KxaenMaHm6spcLW8FcHYS/exec";
+const WHICH = "citrico";
+const PERSONAS = ["Isabella","Álvaro","Cecilia","Dania","Lizbeth","Emilio"];
+
+/* ============================================================
+   SEED — los 13 acuerdos de la Minuta del 27 de junio 2026
+   ============================================================ */
+const SEED = [
+  {id:"c1", categoria:"Comercial", titulo:"Actualizar y comunicar al equipo las nuevas metas de venta diaria: La Presa $37,000 y Sur $10,000.", responsables:["Isabella"], plazo:"Julio 2026"},
+  {id:"c2", categoria:"Incentivos", titulo:"Diseñar y formalizar el esquema de incentivos al personal (bonos por punto de equilibrio y bono colectivo por reducción de costos de mantenimiento). Presentar propuesta con números antes de comunicarlo al equipo.", responsables:["Isabella","Dania"], plazo:"Julio 2026"},
+  {id:"c3", categoria:"Operación", titulo:"Elaborar manuales de operación y uso correcto de equipos críticos: lavaloza, hornos, campana, licuadoras. Incluir instructivos físicos visibles en cada área.", responsables:["Álvaro"], plazo:"Julio 2026"},
+  {id:"c4", categoria:"Operación", titulo:"Delimitar y comunicar las vías correctas de escalamiento de problemas de mantenimiento: operativos resueltos en turno por el equipo, solicitudes a Isabella, y solo casos complejos a Álvaro.", responsables:["Isabella","Álvaro"], plazo:"Inmediato"},
+  {id:"c5", categoria:"Menú", titulo:"Iniciar la reingeniería de menú antes de julio. Ajuste de precios (Americano, chilaquiles con agregados), depuración de platillos de bajo margen y posicionamiento de productos estrella.", responsables:["Dania","Isabella"], plazo:"Primera semana de julio 2026"},
+  {id:"c6", categoria:"Operación", titulo:"Evaluar apertura los lunes durante julio para aprovechar la temporada alta de verano, con plantilla ajustada.", responsables:["Álvaro","Cecilia","Isabella"], plazo:"Fin de junio 2026"},
+  {id:"c7", categoria:"Redes", titulo:"Establecer calendario de entregas de redes sociales: reporte quincenal de métricas, propuesta de promociones mensual y contenido alineado a datos del negocio.", responsables:["Cecilia"], plazo:"Julio 2026"},
+  {id:"c8", categoria:"Compras", titulo:"Organizar visita a la Central de Abastos para conocer proveedores directos y distribuir responsabilidades de compras entre socios.", responsables:["Álvaro","Cecilia","Isabella"], plazo:"Julio 2026"},
+  {id:"c9", categoria:"Gobernanza", titulo:"Redactar y aprobar la política formal de dividendos, retiros y créditos de socios: condiciones, montos máximos, mecanismo de aprobación y registro.", responsables:["Isabella","Álvaro","Cecilia","Lizbeth"], plazo:"Próxima sesión del Consejo"},
+  {id:"c10", categoria:"Gobernanza", titulo:"Priorizar rentabilidad sobre crecimiento. Mantener disciplina en reinversión y flujo de efectivo. Evaluar cada proyecto de inversión con criterio de rentabilidad antes de aprobarlo.", responsables:["Isabella","Álvaro","Cecilia"], plazo:"Permanente"},
+  {id:"c11", categoria:"Gobernanza", titulo:"Emilio Torres enviará cotización para los proyectos propuestos: reingeniería de menú, sistema de KPIs por puesto y plan de transformación organizacional. Los socios revisarán y tomarán decisión.", responsables:["Emilio"], plazo:"Julio 2026"},
+  {id:"c12", categoria:"Gobernanza", titulo:"Plan de inversión de la reserva en efectivo (instrumento de bajo riesgo y alta liquidez) y condiciones formales para préstamos internos con cargo a esa reserva.", responsables:["Isabella","Álvaro","Cecilia","Dania"], plazo:"Julio 2026"},
+  {id:"c13", categoria:"Gobernanza", titulo:"Estrategia de utilidades: priorizar la construcción de patrimonio empresarial sobre la distribución de dividendos, orientando reinversiones hacia activos fijos de valor duradero.", responsables:["Isabella","Álvaro","Cecilia"], plazo:"Aprobado como lineamiento · revisión permanente"}
+];
+
+/* ============================================================
+   ESTADO EN MEMORIA
+   ============================================================ */
+let estados = {};   // {id: {estatus, avance, nota}}
+let strikes = {};   // {persona: n}
+let custom  = {};   // {id: {categoria,titulo,responsables,plazo,avance,estatus,nota}}
+let editMode = false;
+let pin = "";
+let currentTab = "exec";
+let jsonpCounter = 0;
+
+function jsonp(url, params){
+  return new Promise((resolve,reject)=>{
+    const cb = "jsonp_cb_" + (jsonpCounter++);
+    const qs = Object.keys(params).map(k=>encodeURIComponent(k)+"="+encodeURIComponent(params[k])).join("&");
+    const script = document.createElement("script");
+    window[cb] = function(data){ resolve(data); delete window[cb]; script.remove(); };
+    script.src = url + "?" + qs + (qs?"&":"") + "callback=" + cb;
+    script.onerror = ()=>{ reject(new Error("network")); delete window[cb]; script.remove(); };
+    document.body.appendChild(script);
+    setTimeout(()=>{ if(window[cb]){ reject(new Error("timeout")); delete window[cb]; script.remove(); } }, 12000);
+  });
+}
+
+let toastTimer;
+function toast(msg, ok){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show " + (ok===false ? "err" : "ok");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.className = "toast", 2600);
+}
+
+function allAcuerdos(){
+  const list = SEED.map(a => Object.assign({}, a, estados[a.id]||{estatus:"pendiente",avance:0,nota:""}));
+  Object.keys(custom).forEach(id=>{
+    const c = custom[id];
+    list.push({ id, categoria:c.categoria, titulo:c.titulo, responsables:c.responsables||[], plazo:c.plazo||"", estatus:c.estatus||"pendiente", avance:c.avance||0, nota:c.nota||"" });
+  });
+  return list;
+}
+
+/* ============================================================
+   CARGA / GUARDADO
+   ============================================================ */
+async function cargar(){
+  document.getElementById("pillResumen").textContent = "cargando…";
+  try{
+    const data = await jsonp(EXEC_URL, { action:"consejo_get", which:WHICH });
+    estados = data.estados || {};
+    custom  = data.custom  || {};
+    const srvStrikes = data.strikes || {};
+    strikes = {};
+    PERSONAS.forEach(p => strikes[p] = srvStrikes[p] || 0);
+  }catch(err){
+    toast("Sin conexión con la hoja — mostrando último estado.", false);
+  }
+  render();
+}
+
+async function guardarEstado(id, campo, valor){
+  const actual = estados[id] || {estatus:"pendiente",avance:0,nota:""};
+  actual[campo] = valor;
+  estados[id] = actual;
+  render();
+  try{ await jsonp(EXEC_URL, { action:"consejo_set", which:WHICH, tipo:"estado", clave:id, valor: JSON.stringify(actual), pin }); toast("Guardado."); }
+  catch(err){ toast("No se pudo guardar, intenta de nuevo.", false); }
+}
+
+async function guardarStrike(persona, n){
+  strikes[persona] = n;
+  render();
+  try{ await jsonp(EXEC_URL, { action:"consejo_set", which:WHICH, tipo:"strike", clave:persona, valor:n, pin }); }
+  catch(err){ toast("No se pudo guardar el strike.", false); }
+}
+
+async function guardarCustom(id, obj){
+  custom[id] = obj;
+  render();
+  try{ await jsonp(EXEC_URL, { action:"consejo_set", which:WHICH, tipo:"custom", clave:id, valor: JSON.stringify(obj), pin }); toast("Acuerdo agregado."); }
+  catch(err){ toast("No se pudo guardar el acuerdo.", false); }
+}
+
+/* ============================================================
+   EDICIÓN / PIN
+   ============================================================ */
+document.getElementById("btnEdit").onclick = async ()=>{
+  if (editMode){ editMode=false; pin=""; updateEditUI(); return; }
+  const p = prompt("Código de edición:");
+  if (!p) return;
+  try{
+    const res = await jsonp(EXEC_URL, { action:"consejo_check", pin:p });
+    if (res.ok){ editMode=true; pin=p; updateEditUI(); toast("Modo edición activado."); }
+    else toast("Código incorrecto.", false);
+  }catch(err){ toast("No se pudo verificar el código.", false); }
+};
+
+function updateEditUI(){
+  const b = document.getElementById("btnEdit");
+  b.textContent = editMode ? "🔓 Editando" : "🔒 Editar";
+  b.classList.toggle("primary", !editMode);
+  document.getElementById("lockNote").classList.toggle("hidden", editMode);
+  document.getElementById("btnNew").classList.toggle("hidden", !editMode);
+  document.getElementById("panelNew").classList.add("hidden");
+  render();
+}
+
+document.getElementById("btnReload").onclick = cargar;
+
+document.getElementById("btnCopy").onclick = ()=>{
+  const list = allAcuerdos();
+  const txt = list.map(a=>{
+    const est = {pendiente:"Pendiente",progreso:"En progreso",cumplido:"Cumplido",atrasado:"Atrasado"}[a.estatus]||a.estatus;
+    return `• [${est} · ${a.avance}%] ${a.titulo} — ${a.responsables.join(", ")} (${a.plazo})`;
+  }).join("\n");
+  navigator.clipboard.writeText(txt).then(()=>toast("Resumen copiado.")).catch(()=>toast("No se pudo copiar.", false));
+};
+
+/* ============================================================
+   TABS internos (Ejecutivo/Detalle del panel 04)
+   ============================================================ */
+document.getElementById("tabExec").onclick = ()=>{ currentTab="exec"; renderTabs(); };
+document.getElementById("tabDetail").onclick = ()=>{ currentTab="detail"; renderTabs(); };
+function renderTabs(){
+  document.getElementById("tabExec").classList.toggle("sel", currentTab==="exec");
+  document.getElementById("tabDetail").classList.toggle("sel", currentTab==="detail");
+  document.getElementById("viewExec").classList.toggle("hidden", currentTab!=="exec");
+  document.getElementById("viewDetail").classList.toggle("hidden", currentTab!=="detail");
+}
+
+/* ============================================================
+   NUEVO ACUERDO
+   ============================================================ */
+document.getElementById("btnNew").onclick = ()=> document.getElementById("panelNew").classList.remove("hidden");
+document.getElementById("fCancel").onclick = ()=> document.getElementById("panelNew").classList.add("hidden");
+document.getElementById("fSave").onclick = async ()=>{
+  const titulo = document.getElementById("fTitulo").value.trim();
+  if (!titulo){ toast("Falta el título.", false); return; }
+  const id = "n" + Date.now();
+  const obj = {
+    categoria: document.getElementById("fCategoria").value,
+    titulo,
+    responsables: document.getElementById("fResp").value.split(",").map(s=>s.trim()).filter(Boolean),
+    plazo: document.getElementById("fPlazo").value.trim(),
+    estatus: "pendiente", avance: 0, nota: ""
+  };
+  await guardarCustom(id, obj);
+  document.getElementById("fTitulo").value=""; document.getElementById("fResp").value=""; document.getElementById("fPlazo").value="";
+  document.getElementById("panelNew").classList.add("hidden");
+};
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  renderPill();
+  renderStats();
+  renderFocos();
+  renderStrikes();
+  renderFiltros();
+  renderCards();
+}
+
+function renderPill(){
+  const list = allAcuerdos();
+  const cumplidos = list.filter(a=>a.estatus==="cumplido").length;
+  document.getElementById("pillResumen").textContent = `${cumplidos}/${list.length} acuerdos cumplidos`;
+}
+
+function renderStats(){
+  const list = allAcuerdos();
+  const total = list.length;
+  const cumplidos = list.filter(a=>a.estatus==="cumplido").length;
+  const progreso = list.filter(a=>a.estatus==="progreso").length;
+  const pendientes = list.filter(a=>a.estatus==="pendiente").length;
+  const atrasados = list.filter(a=>a.estatus==="atrasado").length;
+  document.getElementById("statGrid").innerHTML = `
+    <div class="stat-box"><div class="n">${total}</div><div class="l">Total</div></div>
+    <div class="stat-box ok"><div class="n">${cumplidos}</div><div class="l">Cumplidos</div></div>
+    <div class="stat-box warn"><div class="n">${progreso}</div><div class="l">En progreso</div></div>
+    <div class="stat-box"><div class="n">${pendientes}</div><div class="l">Pendientes</div></div>
+    <div class="stat-box red"><div class="n">${atrasados}</div><div class="l">Atrasados</div></div>
+  `;
+}
+
+function renderFocos(){
+  const focos = allAcuerdos().filter(a=> a.estatus==="atrasado" || a.estatus==="pendiente");
+  document.getElementById("focosRojos").innerHTML = focos.length
+    ? focos.map(a=>`<div class="foco">${a.titulo}<div class="who">${a.responsables.join(", ")} · ${a.plazo}</div></div>`).join("")
+    : `<div class="foco ok">✓ Sin focos rojos por ahora.</div>`;
+}
+
+function personAvgAvance(p){
+  const mios = allAcuerdos().filter(a=>a.responsables.includes(p));
+  if (!mios.length) return 0;
+  return Math.round(mios.reduce((s,a)=>s+(Number(a.avance)||0),0) / mios.length);
+}
+
+function renderStrikes(){
+  const filas = PERSONAS.map(p=>({ persona:p, pct:personAvgAvance(p), n:strikes[p]||0 }))
+    .sort((a,b)=> b.pct - a.pct);
+
+  document.getElementById("strikesBox").innerHTML = filas.map(f=>{
+    const circles = [0,1,2].map(i=>`<span class="strike-circle ${i<f.n?'on':''}">${i<f.n?'⚾':''}</span>`).join("");
+    return `<div class="marcador-row ${editMode?'editable':''}" data-persona="${f.persona}">
+      <div class="strike-circles">${circles}</div>
+      <div class="marcador-name">${f.persona}</div>
+      <div class="marcador-bar"><i style="width:${f.pct}%"></i></div>
+      <div class="marcador-pct">${f.pct}%</div>
+      <div class="marcador-badge">${f.n}/3</div>
+    </div>`;
+  }).join("");
+
+  if (editMode){
+    document.querySelectorAll(".marcador-row.editable").forEach(el=>{
+      el.onclick = ()=>{
+        const p = el.dataset.persona;
+        const n = ((strikes[p]||0) + 1) % 4;
+        guardarStrike(p, n);
+      };
+    });
+  }
+}
+
+function renderFiltros(){
+  const selP = document.getElementById("fPersona");
+  const selT = document.getElementById("fTema");
+  if (selP.options.length <= 1){
+    PERSONAS.forEach(p=>{ const o=document.createElement("option"); o.value=p; o.textContent=p; selP.appendChild(o); });
+  }
+  if (selT.options.length <= 1){
+    const temas = [...new Set(SEED.map(a=>a.categoria))];
+    temas.forEach(t=>{ const o=document.createElement("option"); o.value=t; o.textContent=t; selT.appendChild(o); });
+  }
+}
+
+function cardHtml(a){
+  const estLabel = {pendiente:"Pendiente",progreso:"En progreso",cumplido:"Cumplido",atrasado:"Atrasado"}[a.estatus]||a.estatus;
+  return `<div class="acuerdo" data-id="${a.id}">
+    <div class="top">
+      <div><span class="chip">${a.categoria}</span> <span class="tag-estatus ${a.estatus}">${estLabel}</span></div>
+      <span class="pct-badge">${a.avance}%</span>
+    </div>
+    <div class="titulo">${a.titulo}</div>
+    <div class="resp">Responsable(s): <b>${a.responsables.join(", ")}</b></div>
+    <div class="plazo" style="margin-top:6px">📅 ${a.plazo}</div>
+    <div class="avance-bar"><i style="width:${a.avance}%"></i></div>
+    ${a.nota ? `<div class="nota">📝 ${a.nota}</div>` : ""}
+    ${editMode ? `
+    <div class="controls">
+      <select class="cEstatus">
+        <option value="pendiente" ${a.estatus==="pendiente"?"selected":""}>Pendiente</option>
+        <option value="progreso" ${a.estatus==="progreso"?"selected":""}>En progreso</option>
+        <option value="cumplido" ${a.estatus==="cumplido"?"selected":""}>Cumplido</option>
+        <option value="atrasado" ${a.estatus==="atrasado"?"selected":""}>Atrasado</option>
+      </select>
+      <input type="number" class="cAvance" min="0" max="100" value="${a.avance}" placeholder="%">
+      <button class="qbtn cGuardarAvance">Guardar %</button>
+    </div>
+    <textarea class="nota-edit cNota" rows="2" placeholder="Nota / evidencia...">${a.nota||""}</textarea>
+    <div class="controls"><button class="qbtn cGuardarNota">Guardar nota</button></div>
+    ` : ""}
+  </div>`;
+}
+
+function renderCards(){
+  const fEst = document.getElementById("fEstatus").value;
+  const fPer = document.getElementById("fPersona").value;
+  const fTem = document.getElementById("fTema").value;
+  let list = allAcuerdos();
+  if (fEst) list = list.filter(a=>a.estatus===fEst);
+  if (fPer) list = list.filter(a=>a.responsables.includes(fPer));
+  if (fTem) list = list.filter(a=>a.categoria===fTem);
+
+  const activos = list.filter(a=>a.estatus!=="cumplido");
+  const cumplidos = list.filter(a=>a.estatus==="cumplido");
+
+  document.getElementById("cards").innerHTML = activos.map(cardHtml).join("") || "<div class='empty'>Sin acuerdos con ese filtro.</div>";
+  document.getElementById("cardsCumplidos").innerHTML = cumplidos.map(cardHtml).join("") || "<div class='empty'>Aún no hay acuerdos cumplidos.</div>";
+
+  document.getElementById("viewExec").innerHTML = renderExecList();
+
+  bindCardEvents();
+}
+
+function execRowHtml(a){
+  const done = a.estatus === "cumplido";
+  const who = a.responsables.join(", ");
+  return `<div class="exec-row">
+    <span class="exec-dot ${a.estatus}"></span>
+    <div class="exec-main">
+      <div class="exec-title ${done?'done':''}">${a.titulo}</div>
+      <div class="exec-who">${who} · ${a.plazo}</div>
+    </div>
+    <span class="exec-pct ${done?'done':''}">${a.avance}%</span>
+  </div>`;
+}
+
+function renderExecList(){
+  const list = allAcuerdos();
+  const orden = {atrasado:0, pendiente:1, progreso:2, cumplido:3};
+  const activos = list.filter(a=>a.estatus!=="cumplido").sort((a,b)=>orden[a.estatus]-orden[b.estatus]);
+  const cumplidos = list.filter(a=>a.estatus==="cumplido");
+  let html = `<p class="hint" style="margin-bottom:4px">Un vistazo rápido — cambia a <b>Detalle</b> para editar.</p>`;
+  html += `<div class="exec-list">`;
+  html += activos.length ? activos.map(execRowHtml).join("") : `<div class="empty">Sin acuerdos activos — todo cumplido 🎉</div>`;
+  html += `</div>`;
+  if (cumplidos.length){
+    html += `<div class="exec-group-label">🏆 Cumplidos (${cumplidos.length})</div>`;
+    html += `<div class="exec-list">` + cumplidos.map(execRowHtml).join("") + `</div>`;
+  }
+  return html;
+}
+
+function bindCardEvents(){
+  document.querySelectorAll(".acuerdo").forEach(card=>{
+    const id = card.dataset.id;
+    const estSel = card.querySelector(".cEstatus");
+    if (estSel) estSel.onchange = ()=> guardarEstado(id, "estatus", estSel.value);
+    const btnAv = card.querySelector(".cGuardarAvance");
+    if (btnAv) btnAv.onclick = ()=>{
+      const v = Math.max(0, Math.min(100, Number(card.querySelector(".cAvance").value)||0));
+      guardarEstado(id, "avance", v);
+    };
+    const btnNota = card.querySelector(".cGuardarNota");
+    if (btnNota) btnNota.onclick = ()=> guardarEstado(id, "nota", card.querySelector(".cNota").value);
+  });
+}
+
+["fEstatus","fPersona","fTema"].forEach(id=>{
+  document.getElementById(id).addEventListener("change", renderCards);
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderTabs();
+cargar();
+</script>
+</body>
+</html>
