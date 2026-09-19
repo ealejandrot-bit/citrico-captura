@@ -125,7 +125,7 @@ if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloud
 /* connection pill */
 (function(){ const ok=/^https:\/\/script\.google\.com\/.+\/exec/.test(SCRIPT_URL); $("connPill").textContent=ok?"● en línea":"● sin conexión"; $("connPill").style.color=ok?"#5E7A54":"#A99E86"; })();
 
-document.querySelectorAll("#sucursal button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#sucursal button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");SUCURSAL=b.dataset.v; if(ITEMS.length){ ITEMS.forEach(it=>{ it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= it.clase==='Gasto' && !!it.code && !it.dupe; }); render(); }}));
+document.querySelectorAll("#sucursal button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#sucursal button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");SUCURSAL=b.dataset.v; if(ITEMS.length){ ITEMS.forEach(it=>{ it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; }); render(); }}));
 
 /* ---------- cobertura + registro (JSONP) ---------- */
 function jsonp(params, cb){
@@ -184,7 +184,6 @@ function seedClassify(text){ const s=strip(text); if(!s)return null; for(const [
 function cleanConcept(desc){ const d0=desc[0]||""; let m=d0.match(/COMPRA-DISPOSICION \(POS\)\s*\d{2}\w{3}\d{4}\s*(.*)/i); if(m) return m[1].replace(/\s*\d{6,}.*/,'').trim()||d0; if(/^ENV[IÍ]O SPEI/i.test(d0)) return d0.split(':').slice(1).join(':').trim(); return d0.trim(); }
 function classifyBank(desc, monto){
   const full=desc.join(' '), s=strip(full), concept=cleanConcept(desc);
-  // Determinar si es ingreso o gasto basado en el signo del monto
   const esIngreso = monto > 0;
   const claseDefault = esIngreso ? 'Ingreso' : 'Gasto';
   if(s.includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto: dinero movido a otra de tus cuentas'};
@@ -236,18 +235,20 @@ function extractGastos(lines){
 function extractGastosExcel(rows){
   // find header
   let hi=-1,cols={};
-  for(let i=0;i<Math.min(rows.length,15);i++){ if(!rows[i]) continue; const r=rows[i].map(x=>strip(String(x||''))); const j=k=>r.findIndex(c=>c.includes(k));
-    if(j('fecha')>=0 && (j('cargo')>=0||j('retiro')>=0||j('saldo')>=0)){ hi=i; cols={fecha:j('fecha'),desc:Math.max(j('concepto'),j('descrip')),cargo:Math.max(j('cargo'),j('retiro')),abono:Math.max(j('abono'),j('deposito'),j('deposito')),saldo:j('saldo')}; break; } }
+  for(let i=0;i<Math.min(rows.length,15);i++){ const r=rows[i]; if(!r) continue; const rm=r.map(x=>strip(String(x||''))); const j=k=>rm.findIndex(c=>c.includes(k));
+    if(j('fecha')>=0 && (j('cargo')>=0||j('retiro')>=0||j('saldo')>=0)){ hi=i; cols={fecha:j('fecha'),desc:Math.max(j('concepto'),j('descrip')),cargo:Math.max(j('cargo'),j('retiro')),abono:Math.max(j('abono'),j('deposito')),saldo:j('saldo')}; break; } }
   if(hi<0) return [];
   const out=[]; let prev=null;
   for(let i=hi+1;i<rows.length;i++){ const r=rows[i]; if(!r||!r.length) continue;
     const saldo = cols.saldo>=0 ? num(r[cols.saldo]) : null;
     const cargo = cols.cargo>=0 ? num(r[cols.cargo]) : 0;
-    let monto=0, isGasto=false;
-    if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0){monto=Math.abs(d);isGasto=true;} } 
-    else if(cargo>0){ monto=cargo; isGasto=true; }
+    const abono = cols.abono>=0 ? num(r[cols.abono]) : 0;
+    let monto=0;
+    if(cargo>0){ monto=-cargo; } 
+    else if(abono>0){ monto=abono; }
+    else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0){monto=Math.abs(d);} }
     if(saldo!=null) prev=saldo;
-    if(isGasto && monto>0){ const desc=[String(r[cols.desc]||'').trim()]; out.push({desc,monto,year:String(new Date().getFullYear()),mes:'ENE',dia:1,fromExcel:true,fechaRaw:r[cols.fecha]}); }
+    if(monto!==0){ const desc=[String(r[cols.desc]||'').trim()]; out.push({desc,monto,year:String(new Date().getFullYear()),mes:'ENE',dia:1,fromExcel:true,fechaRaw:r[cols.fecha]}); }
   }
   return out;
 }
@@ -271,7 +272,7 @@ async function handleFile(file){
       idx:i, fecha:`${mv.dia} ${mv.mes}`, dia:mv.dia, mes:mv.mes, year:mv.year, monto:mv.monto, raw:mv.desc.join(' '),
       concepto:cleanConcept(mv.desc), code:cl.code, cuenta:(CODEMAP[cl.code]||{}).name||'', grupo:g, estado:e,
       clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||''
-    }; it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= it.clase==='Gasto' && !!it.code && !it.dupe; return it; });
+    }; it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; return it; });
     render();
   }catch(err){ $("status").textContent="Error leyendo el archivo: "+err.message; }
 }
@@ -351,4 +352,175 @@ $("clearImp").addEventListener("click",function(){
   ITEMS=[];$("results").innerHTML="";$("summary").innerHTML="";$("status").textContent="";$("file").value="";updateBar();
 });
 let tmo; function toast(m,ok){ const t=$("toast"); t.textContent=m; t.className='toast show '+(ok?'ok':'err'); clearTimeout(tmo); tmo=setTimeout(()=>t.classList.remove('show'),4500); }
-</script></body></html>
+</script>
+<!-- === FUNCIONES DE REVISIÓN === -->
+<script>
+// Globals
+let REVISADOS = {};
+let MODO = 'captura';
+
+// Mejorada: classifyBank con confidence
+const classifyBankOriginal = classifyBank;
+function classifyBank(desc, monto){
+  const full=desc.join(' '), s=strip(full), concept=cleanConcept(desc);
+  const esIngreso = monto > 0;
+  const claseDefault = esIngreso ? 'Ingreso' : 'Gasto';
+  
+  // CONFIANZA ALTA
+  if(s.includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto',confidence:'alta'};
+  if(s.includes('pago a interes')||(s.includes('pago')&&s.includes('credito'))) return {code:'701.11',clase:claseDefault,conf:'Revisar',nota:'Pago de crédito',confidence:'alta'};
+  if(s.includes('comision')) return {code:'701.10',clase:claseDefault,conf:'Directo',nota:'Comisión',confidence:'alta'};
+  
+  // CONFIANZA MEDIA (merchants)
+  for(const [keys,cod] of MERCH){ if(keys.some(k=>s.includes(k))) return {code:cod,clase:claseDefault,conf:'Directo',nota:'Identificado',confidence:'media'}; }
+  
+  // CONFIANZA BAJA (seed classify)
+  const c=seedClassify(concept); if(c) return {code:c,clase:claseDefault,conf:'Auto',nota:'Sugerido',confidence:'baja'};
+  
+  // SIN IDENTIFICACIÓN
+  return {code:'',clase:claseDefault,conf:'Revisar',nota:'No reconocido',confidence:'ninguna'};
+}
+
+function separarPorIdentificacion(items) {
+  const sinId = [];
+  const conId = [];
+  
+  items.forEach(it => {
+    if(!it.code || it.confidence === 'ninguna') {
+      sinId.push(it);
+    } else {
+      conId.push(it);
+    }
+  });
+  
+  return {sinId, conId};
+}
+
+function mostrarRevision(){
+  const {sinId, conId} = separarPorIdentificacion(ITEMS);
+  
+  $("status").style.display = 'none';
+  document.getElementById('reviewSection').style.display = 'block';
+  
+  document.getElementById('countSinId').textContent = sinId.length;
+  document.getElementById('countConId').textContent = conId.length;
+  
+  if(sinId.length > 0) {
+    renderSinIdentificar(sinId);
+  } else {
+    document.getElementById('sinIdentificar').style.display = 'none';
+  }
+  
+  if(conId.length > 0) {
+    renderConIdentificar(conId);
+  } else {
+    document.getElementById('conIdentificar').style.display = 'none';
+  }
+  
+  window.scrollTo(0, 0);
+}
+
+function renderSinIdentificar(items) {
+  const listDiv = document.getElementById('listaSinId');
+  listDiv.innerHTML = '';
+  
+  items.forEach(it => {
+    const card = document.createElement('div');
+    card.className = 'card rev';
+    card.innerHTML = `
+      <div class="cbody" style="width: 100%;">
+        <div class="crow1">
+          <span class="cconcept">${it.concepto}</span>
+          <span class="cmonto">$${it.monto.toFixed(2)}</span>
+        </div>
+        <div class="cmeta">${it.raw.substring(0, 80)}</div>
+        <div class="ccode" style="gap: 12px; align-items: flex-end;">
+          <div>
+            <input type="text" placeholder="Ej: 701.10" data-idx="${it.idx}" class="satInput" value="" style="width: 140px;">
+            <div class="name" data-idx="${it.idx}" style="font-size: 12px; color: var(--muted); margin-top: 4px; min-height: 16px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    listDiv.appendChild(card);
+  });
+  
+  document.querySelectorAll('.satInput').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const code = e.target.value.trim().toUpperCase();
+      const idx = parseInt(e.target.dataset.idx);
+      const nameSpan = document.querySelector(`.name[data-idx="${idx}"]`);
+      
+      if(code && CODEMAP[code]) {
+        nameSpan.textContent = '✓ ' + CODEMAP[code].name;
+        nameSpan.style.color = 'var(--green)';
+        ITEMS[idx].code = code;
+        ITEMS[idx].confidence = 'usuario';
+      } else if(code) {
+        nameSpan.textContent = '✗ Código no encontrado';
+        nameSpan.style.color = 'var(--red)';
+      } else {
+        nameSpan.textContent = '';
+      }
+    });
+  });
+}
+
+function renderConIdentificar(items) {
+  const listDiv = document.getElementById('listaConId');
+  listDiv.innerHTML = '';
+  
+  items.forEach(it => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const isAprobado = REVISADOS[it.clave]?.aprobado ?? true;
+    
+    card.innerHTML = `
+      <input type="checkbox" class="chk" data-clave="${it.clave}" data-idx="${it.idx}" ${isAprobado ? 'checked' : ''}>
+      <div class="cbody">
+        <div class="crow1">
+          <span class="cconcept">${it.concepto}</span>
+          <span class="cmonto">$${it.monto.toFixed(2)}</span>
+        </div>
+        <div class="cmeta">${it.raw.substring(0, 80)}</div>
+        <div class="ccode">
+          <span style="background: var(--accent-weak); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;">
+            ${it.code} · ${(CODEMAP[it.code]?.name || '').substring(0, 50)}
+          </span>
+          <span class="badge" style="background: var(--field); color: var(--ink2);">${it.confidence === 'media' ? 'Identificado' : 'Sugerido'}</span>
+        </div>
+      </div>
+    `;
+    listDiv.appendChild(card);
+  });
+  
+  document.querySelectorAll('.chk').forEach(chk => {
+    chk.addEventListener('change', (e) => {
+      const clave = e.target.dataset.clave;
+      REVISADOS[clave] = {aprobado: e.target.checked};
+    });
+  });
+}
+</script>
+
+</body></html
+  <!-- === SECCIÓN DE REVISIÓN === -->
+  <div id="reviewSection" style="display:none;">
+    <div class="panel">
+      <h2 style="font-family: var(--serif); font-size: 22px; margin: 0 0 20px; color: var(--ink);">Revisión de gastos SAT</h2>
+      
+      <!-- GASTOS SIN IDENTIFICACIÓN (REQUIEREN ACCIÓN) -->
+      <div id="sinIdentificar" style="margin-bottom: 32px;">
+        <div class="grouphd"><span style="color: var(--red);">⚠️ Requieren código SAT</span><span class="tag rev" id="countSinId">0</span></div>
+        <div id="listaSinId" style="margin-bottom: 16px;"></div>
+      </div>
+      
+      <!-- GASTOS CON IDENTIFICACIÓN (PARA APROBAR) -->
+      <div id="conIdentificar">
+        <div class="grouphd"><span style="color: var(--green);">✓ Listos para aprobar</span><span class="tag ok" id="countConId">0</span></div>
+        <div id="listaConId"></div>
+      </div>
+    </div>
+  </div>
+
+>
