@@ -182,17 +182,7 @@ const MERCH=[
 ];
 function seedClassify(text){ const s=strip(text); if(!s)return null; for(const [kw,code] of FORCE){ if(s.includes(kw)) return code; } const sc={}; s.split(/[^a-z0-9]+/).forEach(t=>{ if(t.length<2)return; if(SEED[t])sc[SEED[t]]=(sc[SEED[t]]||0)+3; else if(KWDICT[t])sc[KWDICT[t]]=(sc[KWDICT[t]]||0)+1; }); let b=null,bv=0; for(const k in sc){if(sc[k]>bv){bv=sc[k];b=k;}} return b; }
 function cleanConcept(desc){ const d0=desc[0]||""; let m=d0.match(/COMPRA-DISPOSICION \(POS\)\s*\d{2}\w{3}\d{4}\s*(.*)/i); if(m) return m[1].replace(/\s*\d{6,}.*/,'').trim()||d0; if(/^ENV[IÍ]O SPEI/i.test(d0)) return d0.split(':').slice(1).join(':').trim(); return d0.trim(); }
-function classifyBank(desc, monto){
-  const full=desc.join(' '), s=strip(full), concept=cleanConcept(desc);
-  const esIngreso = monto > 0;
-  const claseDefault = esIngreso ? 'Ingreso' : 'Gasto';
-  if(s.includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto: dinero movido a otra de tus cuentas'};
-  if(s.includes('pago a interes')||(s.includes('pago')&&s.includes('credito'))) return {code:'701.11',clase:claseDefault,conf:'Revisar',nota:'Pago de crédito: separar interés (gasto) vs capital (pasivo)'};
-  if(s.includes('comision')) return {code:'701.10',clase:claseDefault,conf:'Directo',nota:''};
-  for(const [keys,code] of MERCH){ if(keys.some(k=>s.includes(k))) return {code,clase:claseDefault,conf:'Directo',nota:''}; }
-  const c=seedClassify(concept); if(c) return {code:c,clase:claseDefault,conf:'Auto',nota:''};
-  return {code:'',clase:claseDefault,conf:'Revisar',nota:'No reconocido — clasifícalo'};
-}
+/* classifyBank moved below after separarPorIdentificacion definition */
 
 /* ---------- PDF parser ---------- */
 async function parsePDFlines(file){
@@ -271,9 +261,9 @@ async function handleFile(file){
     ITEMS=raw.map((mv,i)=>{ const cl=classifyBank(mv.desc, mv.monto); const [g,e]=grpEst(cl.code); const it={
       idx:i, fecha:`${mv.dia} ${mv.mes}`, dia:mv.dia, mes:mv.mes, year:mv.year, monto:mv.monto, raw:mv.desc.join(' '),
       concepto:cleanConcept(mv.desc), code:cl.code, cuenta:(CODEMAP[cl.code]||{}).name||'', grupo:g, estado:e,
-      clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||''
+      clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||'', confidence:cl.confidence
     }; it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; return it; });
-    render();
+    mostrarRevision();
   }catch(err){ $("status").textContent="Error leyendo el archivo: "+err.message; }
 }
 
@@ -360,7 +350,6 @@ let REVISADOS = {};
 let MODO = 'captura';
 
 // Mejorada: classifyBank con confidence
-const classifyBankOriginal = classifyBank;
 function classifyBank(desc, monto){
   const full=desc.join(' '), s=strip(full), concept=cleanConcept(desc);
   const esIngreso = monto > 0;
