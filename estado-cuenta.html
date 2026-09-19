@@ -464,8 +464,8 @@ updateBar();
 
 /* ---------- send ---------- */
 $("accept").addEventListener("click",send);
-function send(){
-  console.log('[send] ITEMS:', ITEMS.length, 'items');
+function send(retries=0){
+  console.log('[send] ITEMS:', ITEMS.length, 'items, retry attempt:', retries);
   const sel=ITEMS.filter(it=>it.code);
   if(!sel.length) return;
   const records=sel.map(it=>{
@@ -484,18 +484,29 @@ function send(){
   $("accept").disabled=true; $("accept").innerHTML='<span class="spin"></span>Enviando '+records.length+'...';
   const payload={action:'edocuenta', archivo:LASTFILE, records};
   console.log('[send] payload:', payload);
+  console.log('[send] SCRIPT_URL:', SCRIPT_URL);
   try {
-    fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15 segundo timeout
+
+    fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
+      mode:'cors',
+      signal: controller.signal
+    })
       .then(r=>{
+        clearTimeout(timeout);
         console.log('[send] response status:', r.status, 'ok:', r.ok);
         if(!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.text(); // Try to read response as text first
+        return r.text();
       })
       .then(text=>{
         console.log('[send] response text:', text);
         try {
           const data = JSON.parse(text);
-          if(data.success || data.count) {
+          if(data.ok || data.success || data.added) {
             toast('✓ '+records.length+' gastos enviados a tu hoja',true);
             sel.forEach(it=>{ CLAVES[it.clave]=true; it.dupe=true; it.include=false; });
             render(); setTimeout(cargarRegistro,1500);
@@ -503,7 +514,6 @@ function send(){
             toast('Error en la base: '+(data.error || 'respuesta inválida'),false);
           }
         } catch(e) {
-          // Response might not be JSON, but if status was ok, consider it success
           console.log('[send] response parse error:', e);
           toast('✓ '+records.length+' gastos enviados a tu hoja',true);
           sel.forEach(it=>{ CLAVES[it.clave]=true; it.dupe=true; it.include=false; });
@@ -512,13 +522,24 @@ function send(){
         $("accept").disabled=false; updateBar();
       })
       .catch(err=>{
-        console.error('[send error]',err);
-        toast('No se pudo ingresar. Revisa la conexión: '+err.message,false);
+        clearTimeout(timeout);
+        console.error('[send error]',err.message, err.name);
+        if(err.name === 'AbortError') {
+          if(retries < 2) {
+            console.log('[send] timeout, retrying...');
+            setTimeout(() => send(retries+1), 1000);
+            return;
+          }
+          toast('Timeout: el servidor tardó demasiado. Intenta nuevamente.',false);
+        } else {
+          const msg = err.message || 'Error de conexión';
+          toast('No se pudo ingresar: '+msg,false);
+        }
         $("accept").disabled=false; updateBar();
       });
   } catch(e) {
-    console.error('[send catch]',e);
-    toast('Error al enviar. Intenta nuevamente.',false);
+    console.error('[send catch]',e.message);
+    toast('Error al enviar: '+e.message,false);
     $("accept").disabled=false; updateBar();
   }
 }
