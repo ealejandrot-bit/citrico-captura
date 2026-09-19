@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-20 -->
+<!-- v20260919-21 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -132,7 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 
 <div class="actionbar" id="actionbar"><div class="inner">
   <button class="btn-clear" id="clearImp">Limpiar</button>
-  <button class="btn-main" id="accept">Aceptar e ingresar</button>
+  <button class="btn-main" id="accept" onclick="send()">Aceptar e ingresar</button>
 </div></div>
 <div class="toast" id="toast"></div>
 
@@ -465,7 +465,8 @@ updateBar();
 /* ---------- send ---------- */
 $("accept").addEventListener("click",send);
 function send(){
-  const sel=ITEMS.filter(it=>it.include&&it.code);
+  console.log('[send] ITEMS:', ITEMS.length, 'items');
+  const sel=ITEMS.filter(it=>it.code);
   if(!sel.length) return;
   const records=sel.map(it=>{
     const mn=MESN[it.mes]||1; const fecha=`${it.year}-${String(mn).padStart(2,'0')}-${String(it.dia).padStart(2,'0')}`;
