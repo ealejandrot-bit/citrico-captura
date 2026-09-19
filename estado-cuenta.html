@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-2 -->
+<!-- v20260919-4 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -330,16 +330,46 @@ function extractGastosExcel(rows){
     else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0) monto=Math.abs(d); }
     if(saldo!=null) prev=saldo;
     if(monto!==0){
-      const fechaStr = String(r[cols.fecha]||'').trim();
+      const fechaRaw = r[cols.fecha];
+      const fechaStr = String(fechaRaw||'').trim();
       let dia=1, mes='ENE', year=String(new Date().getFullYear());
-      // Intentar parsear fecha formato DD/MM/YYYY o YYYY-MM-DD
-      const dateMatch = fechaStr.match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
-      if(dateMatch){
-        dia=parseInt(dateMatch[1])||1;
-        const mesNum=parseInt(dateMatch[2])||1;
-        const meses=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-        mes=meses[mesNum-1]||'ENE';
-        year=String(dateMatch[3]);
+      const meses=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+      // Si es un número (fecha serial de Excel)
+      const fechaNum = parseFloat(fechaStr);
+      if(!isNaN(fechaNum) && fechaNum>30000 && fechaNum<60000){
+        const excelEpoch = new Date(1900,0,1);
+        const fecha = new Date(excelEpoch.getTime() + (fechaNum-1)*86400000);
+        dia=fecha.getDate();
+        mes=meses[fecha.getMonth()]||'ENE';
+        year=String(fecha.getFullYear());
+      } else {
+        let match;
+        // Formato: DD/MM/YYYY o DD-MM-YYYY
+        match = fechaStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if(match && parseInt(match[1])<=31 && parseInt(match[2])<=12){
+          dia=parseInt(match[1])||1;
+          mes=meses[parseInt(match[2])-1]||'ENE';
+          year=String(match[3]);
+        } else {
+          // Formato: YYYY-MM-DD o YYYY/MM/DD
+          match = fechaStr.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+          if(match && parseInt(match[2])<=12 && parseInt(match[3])<=31){
+            year=String(match[1]);
+            mes=meses[parseInt(match[2])-1]||'ENE';
+            dia=parseInt(match[3])||1;
+          } else {
+            // Intentar con Date object si viene en otro formato
+            try {
+              const fecha = new Date(fechaStr);
+              if(!isNaN(fecha.getTime()) && fecha.getFullYear()>1990){
+                dia=fecha.getDate();
+                mes=meses[fecha.getMonth()]||'ENE';
+                year=String(fecha.getFullYear());
+              }
+            } catch(e){ }
+          }
+        }
       }
       out.push({desc:[String(r[cols.desc]||'').trim()],monto,year,mes,dia,fromExcel:true});
     }
