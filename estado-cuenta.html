@@ -73,7 +73,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .toast.ok{background:var(--accent)}.toast.err{background:var(--red)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.item-btn{background:var(--surface);border-radius:16px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(44,40,31,.06);cursor:pointer;transition:all .25s ease;border-left:4px solid var(--line)}
+.item-btn{background:var(--surface);border-radius:16px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(44,40,31,.06);cursor:pointer;transition:all .25s ease;border-left:4px solid var(--line);max-width:620px}
 .item-btn:hover{box-shadow:0 6px 16px rgba(44,40,31,.1);transform:translateY(-2px)}
 .item-btn.valid{border-left-color:var(--green);background:rgba(94,122,84,.02)}
 .item-btn.aprobado{border-left-color:var(--green);background:rgba(94,122,84,.08);box-shadow:0 2px 8px rgba(94,122,84,.12)}
@@ -94,6 +94,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 .code-option:last-child{border-bottom:none}
 .code-option-code{font-family:monospace;font-weight:700;color:var(--accent);min-width:60px;font-size:13px}
 .code-option-name{flex:1;margin-left:14px;color:var(--ink2);font-size:12px;line-height:1.3}
+#listaSinId,#listaConId{max-width:620px}
 </style></head>
 <body>
 <div class="wrap">
@@ -549,11 +550,13 @@ function renderSinIdentificar(items) {
     const btn = document.createElement('div');
     btn.className = 'item-btn';
     btn.id = `item-${it.idx}`;
+    const fecha = `${it.year}-${String(MESN[it.mes]||1).padStart(2,'0')}-${String(it.dia).padStart(2,'0')}`;
     btn.innerHTML = `
       <div class="btn-content">
         <div class="btn-text">
           <div class="btn-concept">${it.concepto}</div>
           <div class="btn-raw">${it.raw.substring(0, 60)}...</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">${fecha}</div>
         </div>
         <div class="btn-monto">$${it.monto.toFixed(2)}</div>
       </div>
@@ -673,6 +676,7 @@ function renderConIdentificar(items) {
     const isCodeValid = !!CODEMAP[it.code];
     if(isCodeValid) btn.classList.add('valid');
 
+    const fecha = `${it.year}-${String(MESN[it.mes]||1).padStart(2,'0')}-${String(it.dia).padStart(2,'0')}`;
     btn.innerHTML = `
       <div class="btn-content">
         <div class="btn-text">
@@ -680,7 +684,7 @@ function renderConIdentificar(items) {
           <div class="btn-code" style="font-size: 12px; color: var(--green); font-weight: 500; margin-top: 4px;">
             ${it.code} · ${(CODEMAP[it.code]?.name || '').substring(0, 40)}
           </div>
-          <div class="btn-raw">${it.raw.substring(0, 60)}...</div>
+          <div class="btn-raw">${it.raw.substring(0, 60)}... · ${fecha}</div>
         </div>
         <div class="btn-monto">$${it.monto.toFixed(2)}</div>
       </div>
