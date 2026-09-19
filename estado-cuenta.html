@@ -710,31 +710,26 @@ function enviarABase(){
 document.getElementById('btnGuardar')?.addEventListener('click', enviarABase);
 </script>
 
-</body></html
-  <!-- === SECCIÓN DE REVISIÓN === -->
-  <div id="reviewSection" style="display:none;">
-    <div class="panel">
-      <h2 style="font-family: var(--serif); font-size: 22px; margin: 0 0 20px; color: var(--ink);">Revisión de gastos SAT</h2>
-
-      <!-- GASTOS SIN IDENTIFICACIÓN (REQUIEREN ACCIÓN) -->
-      <div id="sinIdentificar" style="margin-bottom: 32px;">
-        <div class="grouphd"><span style="color: var(--red);">⚠️ Requieren código SAT</span><span class="tag rev" id="countSinId">0</span></div>
-        <div id="listaSinId" style="margin-bottom: 16px;"></div>
-      </div>
-
-      <!-- GASTOS CON IDENTIFICACIÓN (PARA APROBAR) -->
-      <div id="conIdentificar">
-        <div class="grouphd"><span style="color: var(--green);">✓ Listos para aprobar</span><span class="tag ok" id="countConId">0</span></div>
-        <div id="listaConId"></div>
-      </div>
-
-      <!-- BOTÓN GUARDAR -->
-      <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line);">
-        <button id="btnGuardar" class="btn-main" style="width: 100%;">
-          💾 Guardar gastos en la base
-        </button>
-      </div>
-    </div>
+<!-- === SECCIÓN DE REVISIÓN === -->
+<div id="reviewSection" style="display:none;">
+  <!-- GASTOS SIN IDENTIFICACIÓN (REQUIEREN ACCIÓN) -->
+  <div id="sinIdentificar" style="margin-bottom: 32px;">
+    <div class="grouphd"><span style="color: var(--red);">⚠️ Requieren código SAT</span><span class="tag rev" id="countSinId">0</span></div>
+    <div id="listaSinId" style="margin-bottom: 16px;"></div>
   </div>
 
->
+  <!-- GASTOS CON IDENTIFICACIÓN (PARA APROBAR) -->
+  <div id="conIdentificar">
+    <div class="grouphd"><span style="color: var(--green);">✓ Listos para aprobar</span><span class="tag ok" id="countConId">0</span></div>
+    <div id="listaConId"></div>
+  </div>
+
+  <!-- BOTÓN GUARDAR -->
+  <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line);">
+    <button id="btnGuardar" class="btn-main" style="width: 100%;">
+      💾 Guardar gastos en la base
+    </button>
+  </div>
+</div>
+
+</body></html>
