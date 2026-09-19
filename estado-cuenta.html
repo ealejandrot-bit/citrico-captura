@@ -324,11 +324,24 @@ function extractGastosExcel(rows){
     const cargo = cols.cargo>=0 ? num(r[cols.cargo]) : 0;
     const abono = cols.abono>=0 ? num(r[cols.abono]) : 0;
     let monto=0;
-    if(cargo>0) monto=-cargo;
+    if(cargo>0) monto=cargo;
     else if(abono>0) monto=abono;
     else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0) monto=Math.abs(d); }
     if(saldo!=null) prev=saldo;
-    if(monto!==0){ out.push({desc:[String(r[cols.desc]||'').trim()],monto,year:String(new Date().getFullYear()),mes:'ENE',dia:1,fromExcel:true,fechaRaw:r[cols.fecha]}); }
+    if(monto!==0){
+      const fechaStr = String(r[cols.fecha]||'').trim();
+      let dia=1, mes='ENE', year=String(new Date().getFullYear());
+      // Intentar parsear fecha formato DD/MM/YYYY o YYYY-MM-DD
+      const dateMatch = fechaStr.match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+      if(dateMatch){
+        dia=parseInt(dateMatch[1])||1;
+        const mesNum=parseInt(dateMatch[2])||1;
+        const meses=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+        mes=meses[mesNum-1]||'ENE';
+        year=String(dateMatch[3]);
+      }
+      out.push({desc:[String(r[cols.desc]||'').trim()],monto,year,mes,dia,fromExcel:true,fechaRaw});
+    }
   }
   console.log("[Excel] Done:",out.length);
   return out;
@@ -431,7 +444,7 @@ function send(){
       codigo_sat:it.code, cuenta_sat:it.cuenta, grupo:it.grupo, estado_financiero:it.estado,
       producto:it.concepto, proveedor:it.concepto,
       efectivo:0, debito_credito: pos==='debcre'?it.monto:0, tpv:0, amex:0, transferencia: pos==='transf'?it.monto:0,
-      total:it.monto, flujo: isTras?0:-it.monto,
+      total:it.monto, flujo: isTras?0:-Math.abs(it.monto),
       folio_factura:'', notas:('BanBajío · cliente '+(it.acct||'?')+' · ref '+(it.ref||'-')+' · '+it.dia+' '+it.mes+' '+it.year),
       real_banbajio:0, pagado:'Sí', observaciones:'', capturado_por:'Importación banco', clave: it.clave };
   });
