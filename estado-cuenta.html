@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-16 -->
+<!-- v20260919-17 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -456,7 +456,7 @@ function card(it){
       <div class="ccode"><input id="code${it.idx}" value="${it.code}" list="codes" placeholder="código"><span class="name" id="nm${it.idx}">${it.cuenta||'—'}</span></div>
     </div></div>`;
 }
-function updateBar(){ const sel=ITEMS.filter(it=>it.include&&it.code); const sum=sel.reduce((a,b)=>a+b.monto,0); $("accept").disabled=!sel.length; $("accept").textContent= sel.length? `Aceptar e ingresar  ·  ${sel.length}  ·  $${sum.toLocaleString('es-MX',{minimumFractionDigits:2})}` : "Aceptar e ingresar"; }
+function updateBar(){ const sel=ITEMS.filter(it=>it.code&&(it.include!==false)); const sum=sel.reduce((a,b)=>a+b.monto,0); $("accept").disabled=!sel.length; $("accept").textContent= sel.length? `Aceptar e ingresar  ·  ${sel.length}  ·  $${sum.toLocaleString('es-MX',{minimumFractionDigits:2})}` : "Aceptar e ingresar"; }
 
 /* datalist */
 (function(){ const dl=document.createElement('datalist'); dl.id='codes'; dl.innerHTML=CAT.map(c=>`<option value="${c.code}">${c.name}</option>`).join(''); document.body.appendChild(dl); })();
@@ -696,15 +696,23 @@ function setupCodeInputs(selector) {
         nameSpan.textContent = '✓ ' + CODEMAP[code].name;
         nameSpan.style.color = 'var(--green)';
         ITEMS[idx].code = code;
+        ITEMS[idx].cuenta = CODEMAP[code].name;
         ITEMS[idx].confidence = 'usuario';
+        ITEMS[idx].include = true;
         btn.classList.add('valid');
+        updateBar();
       } else if(code) {
         nameSpan.textContent = '✗ Código no encontrado';
         nameSpan.style.color = 'var(--red)';
+        ITEMS[idx].code = '';
+        ITEMS[idx].include = false;
         btn.classList.remove('valid');
+        updateBar();
       } else {
         nameSpan.textContent = '';
+        ITEMS[idx].code = '';
         btn.classList.remove('valid');
+        updateBar();
       }
     });
   });
