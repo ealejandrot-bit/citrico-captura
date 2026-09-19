@@ -640,14 +640,18 @@ function mostrarRevision(){
   document.getElementById('countConId').textContent = conId.length;
   
   if(sinId.length > 0) {
+    document.getElementById('sinIdentificar').style.display = 'block';
     renderSinIdentificar(sinId);
   } else {
+    document.getElementById('listaSinId').innerHTML = '';
     document.getElementById('sinIdentificar').style.display = 'none';
   }
   
   if(conId.length > 0) {
+    document.getElementById('conIdentificar').style.display = 'block';
     renderConIdentificar(conId);
   } else {
+    document.getElementById('listaConId').innerHTML = '';
     document.getElementById('conIdentificar').style.display = 'none';
   }
   
@@ -740,6 +744,10 @@ function setupCodeInputs(selector) {
       showCodeDropdown(input);
     });
 
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); input.dispatchEvent(new Event('change', {bubbles:true})); }
+    });
+
     input.addEventListener('change', (e) => {
       const code = e.target.value.trim().toUpperCase();
       const idx = parseInt(e.target.dataset.idx);
@@ -756,8 +764,10 @@ function setupCodeInputs(selector) {
         ITEMS[idx].cuenta = CODEMAP[code].name;
         ITEMS[idx].confidence = 'usuario';
         ITEMS[idx].include = true;
+        REVISADOS[ITEMS[idx].clave] = {aprobado:true};
         btn.classList.add('valid');
         updateBar();
+        toast('✓ '+code+' · '+CODEMAP[code].name+' — aprobado', true);
         setTimeout(()=>mostrarRevision(), 200);
       } else if(code) {
         nameSpan.textContent = '✗ Código no encontrado';
@@ -819,8 +829,8 @@ function renderConIdentificar(items) {
         </div>
       </div>
       <div class="btn-actions" style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;">
-        <button class="btn-check" data-clave="${it.clave}" data-idx="${it.idx}" style="padding: 6px 12px; background: var(--green); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
-          ✓ Aceptar
+        <button class="btn-check" data-clave="${it.clave}" data-idx="${it.idx}" style="padding: 6px 12px; background: ${isAprobado?'var(--green)':'var(--field-2)'}; color: ${isAprobado?'white':'var(--ink2)'}; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+          ${isAprobado?'✓ Aprobado':'✓ Aceptar'}
         </button>
         <button class="btn-reject" data-clave="${it.clave}" data-idx="${it.idx}" style="padding: 6px 12px; background: var(--red); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
           ✗ Rechazar
@@ -886,6 +896,8 @@ function renderConIdentificar(items) {
       REVISADOS[clave] = {aprobado: true};
       itemBtn.classList.add('aprobado');
       itemBtn.classList.remove('rechazado');
+      button.textContent = '✓ Aprobado'; button.style.background='var(--green)'; button.style.color='white';
+      updateBar();
       toast('✓ Gasto aceptado', true);
     });
   });
@@ -901,6 +913,9 @@ function renderConIdentificar(items) {
       REVISADOS[clave] = {aprobado: false};
       itemBtn.classList.remove('aprobado');
       itemBtn.classList.add('rechazado');
+      const chk = itemBtn.querySelector('.btn-check');
+      if(chk){ chk.textContent = '✓ Aceptar'; chk.style.background='var(--field-2)'; chk.style.color='var(--ink2)'; }
+      updateBar();
       toast('✗ Gasto rechazado', true);
     });
   });
