@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-6 -->
+<!-- v20260919-7 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -339,13 +339,12 @@ function extractGastosExcel(rows){
       // Si es un número (fecha serial de Excel)
       const fechaNum = parseFloat(fechaStr);
       if(!isNaN(fechaNum) && fechaNum>30000 && fechaNum<60000){
-        // Excel cuenta desde 1/1/1900, con bug de 29/2/1900 que no existió
-        // Para fechas > 60, restar 2; para fechas <= 60, restar 1
-        const offset = fechaNum > 60 ? 2 : 1;
-        const fecha = new Date(1900, 0, fechaNum - offset);
-        dia=fecha.getDate();
-        mes=meses[fecha.getMonth()]||'ENE';
-        year=String(fecha.getFullYear());
+        // Convertir serial de Excel a fecha: 25569 es el offset entre epoch de Excel (1900) y JavaScript (1970)
+        // incluyendo el ajuste por el bug del 29/2/1900
+        const fecha = new Date((fechaNum - 25569) * 86400 * 1000);
+        dia=fecha.getUTCDate();
+        mes=meses[fecha.getUTCMonth()]||'ENE';
+        year=String(fecha.getUTCFullYear());
       } else {
         let match;
         // Formato: DD/MM/YYYY o DD-MM-YYYY
@@ -605,7 +604,7 @@ function renderSinIdentificar(items) {
           <div class="btn-raw">${it.raw.substring(0, 60)}...</div>
           <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">${fecha}</div>
         </div>
-        <div class="btn-monto">$${it.monto.toFixed(2)}</div>
+        <div class="btn-monto">$${it.monto.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
       </div>
       <div class="btn-input-area" style="display:none; gap: 8px; margin-top: 12px;">
         <div class="code-input-wrapper">
@@ -733,7 +732,7 @@ function renderConIdentificar(items) {
           </div>
           <div class="btn-raw">${it.raw.substring(0, 60)}... · ${fecha}</div>
         </div>
-        <div class="btn-monto">$${it.monto.toFixed(2)}</div>
+        <div class="btn-monto">$${it.monto.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
       </div>
       <div class="btn-input-area">
         <div class="code-input-wrapper">
