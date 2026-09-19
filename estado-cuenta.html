@@ -742,10 +742,13 @@ function renderConIdentificar(items) {
   document.querySelectorAll('.btn-check').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const clave = e.target.dataset.clave;
-      const idx = parseInt(e.target.dataset.idx);
+      const button = e.currentTarget;
+      const clave = button.dataset.clave;
+      const idx = parseInt(button.dataset.idx);
       const item = ITEMS[idx];
       const itemBtn = document.getElementById(`approved-${idx}`);
+
+      console.log('[btn-check click]', {clave, idx, item, itemBtn});
 
       // Validar que tenga código antes de aceptar
       if(!item || !item.code || !CODEMAP[item.code]) {
@@ -756,18 +759,22 @@ function renderConIdentificar(items) {
       REVISADOS[clave] = {aprobado: true};
       itemBtn.classList.add('aprobado');
       itemBtn.classList.remove('rechazado');
+      toast('✓ Gasto aceptado', true);
     });
   });
 
   document.querySelectorAll('.btn-reject').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const clave = e.target.dataset.clave;
-      const idx = parseInt(e.target.dataset.idx);
+      const button = e.currentTarget;
+      const clave = button.dataset.clave;
+      const idx = parseInt(button.dataset.idx);
       const itemBtn = document.getElementById(`approved-${idx}`);
+
       REVISADOS[clave] = {aprobado: false};
       itemBtn.classList.remove('aprobado');
       itemBtn.classList.add('rechazado');
+      toast('✗ Gasto rechazado', true);
     });
   });
 }
