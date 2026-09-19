@@ -601,6 +601,9 @@ function renderConIdentificar(items) {
     const isAprobado = REVISADOS[it.clave]?.aprobado ?? true;
     if(isAprobado) btn.classList.add('aprobado');
 
+    const isCodeValid = !!CODEMAP[it.code];
+    if(isCodeValid) btn.classList.add('valid');
+
     btn.innerHTML = `
       <div class="btn-content">
         <div class="btn-text">
@@ -611,6 +614,11 @@ function renderConIdentificar(items) {
           <div class="btn-raw">${it.raw.substring(0, 60)}...</div>
         </div>
         <div class="btn-monto">$${it.monto.toFixed(2)}</div>
+      </div>
+      <div class="btn-input-area">
+        <input type="text" class="code-edit" placeholder="Código SAT" value="${it.code || ''}"
+               data-idx="${it.idx}" data-clave="${it.clave}"
+               style="padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; font-family: monospace; width: 100%; margin-bottom: 8px;">
       </div>
       <div class="btn-actions" style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;">
         <button class="btn-check" data-clave="${it.clave}" data-idx="${it.idx}" style="padding: 6px 12px; background: var(--green); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
@@ -625,11 +633,45 @@ function renderConIdentificar(items) {
     listDiv.appendChild(btn);
   });
 
+  // Validación en tiempo real de códigos editables
+  document.querySelectorAll('.code-edit').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const newCode = strip(e.target.value);
+      const idx = parseInt(e.target.dataset.idx);
+      const btn = document.getElementById(`approved-${idx}`);
+
+      if(newCode && CODEMAP[newCode]) {
+        btn.classList.add('valid');
+        // Actualizar ITEMS con el nuevo código
+        const item = ITEMS[idx];
+        if(item) item.code = newCode;
+      } else {
+        btn.classList.remove('valid');
+        const item = ITEMS[idx];
+        if(item) item.code = newCode;
+      }
+
+      // Actualizar el display del código
+      const codeDisplay = btn.querySelector('.btn-code');
+      if(codeDisplay) {
+        codeDisplay.innerHTML = `${newCode || '—'} · ${(CODEMAP[newCode]?.name || '').substring(0, 40)}`;
+      }
+    });
+  });
+
   document.querySelectorAll('.btn-check').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const clave = e.target.dataset.clave;
       const idx = parseInt(e.target.dataset.idx);
+      const item = ITEMS[idx];
+
+      // Validar que tenga código antes de aceptar
+      if(!item || !item.code || !CODEMAP[item.code]) {
+        toast('⚠️ El código SAT no es válido', false);
+        return;
+      }
+
       REVISADOS[clave] = {aprobado: true};
       document.getElementById(`approved-${idx}`).classList.add('aprobado');
     });
