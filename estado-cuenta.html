@@ -187,7 +187,6 @@ function classifyBank(desc, monto){
   // Determinar si es ingreso o gasto basado en el signo del monto
   const esIngreso = monto > 0;
   const claseDefault = esIngreso ? 'Ingreso' : 'Gasto';
-
   if(s.includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto: dinero movido a otra de tus cuentas'};
   if(s.includes('pago a interes')||(s.includes('pago')&&s.includes('credito'))) return {code:'701.11',clase:claseDefault,conf:'Revisar',nota:'Pago de crédito: separar interés (gasto) vs capital (pasivo)'};
   if(s.includes('comision')) return {code:'701.10',clase:claseDefault,conf:'Directo',nota:''};
@@ -237,7 +236,7 @@ function extractGastos(lines){
 function extractGastosExcel(rows){
   // find header
   let hi=-1,cols={};
-  for(let i=0;i<Math.min(rows.length,15);i++){ const r=rows[i].map(x=>strip(String(x||''))); const j=k=>r.findIndex(c=>c.includes(k));
+  for(let i=0;i<Math.min(rows.length,15);i++){ if(!rows[i]) continue; const r=rows[i].map(x=>strip(String(x||''))); const j=k=>r.findIndex(c=>c.includes(k));
     if(j('fecha')>=0 && (j('cargo')>=0||j('retiro')>=0||j('saldo')>=0)){ hi=i; cols={fecha:j('fecha'),desc:Math.max(j('concepto'),j('descrip')),cargo:Math.max(j('cargo'),j('retiro')),abono:Math.max(j('abono'),j('deposito'),j('deposito')),saldo:j('saldo')}; break; } }
   if(hi<0) return [];
   const out=[]; let prev=null;
