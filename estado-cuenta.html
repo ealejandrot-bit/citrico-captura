@@ -141,7 +141,7 @@ const CAT=[{"code": "100", "name": "Activo", "grupo": "Activo", "estado": "Balan
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbw9DVu9HkxmuS0pwrbPrU4IajL1J-TaIKTblAUjwmqAvP6KxaenMaHm6spcLW8FcHYS/exec";
 const CODEMAP={}; CAT.forEach(c=>CODEMAP[c.code]=c);
 const $=id=>document.getElementById(id);
-let SUCURSAL="", ITEMS=[], CLAVES={}, LASTFILE="";
+let SUCURSAL="", ITEMS=[], CLAVES={}, LASTFILE="", PERIODOS={};
 
 /* pdf.js worker */
 if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }
@@ -149,7 +149,7 @@ if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloud
 /* connection pill */
 (function(){ const ok=/^https:\/\/script\.google\.com\/.+\/exec/.test(SCRIPT_URL); $("connPill").textContent=ok?"● en línea":"● sin conexión"; $("connPill").style.color=ok?"#5E7A54":"#A99E86"; })();
 
-document.querySelectorAll("#sucursal button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#sucursal button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");SUCURSAL=b.dataset.v; if(ITEMS.length){ ITEMS.forEach(it=>{ it.clave=claveOf(it); it.dupe=!!CLAVES[normClave(it.clave)]; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; }); render(); }}));
+document.querySelectorAll("#sucursal button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#sucursal button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");SUCURSAL=b.dataset.v; if(ITEMS.length){ ITEMS.forEach(it=>{ it.clave=claveOf(it); it.dupe=esDupe(it); it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; }); render(); }}));
 
 /* ---------- cobertura + registro (JSONP) ---------- */
 function jsonp(params, cb){
@@ -164,13 +164,21 @@ function jsonp(params, cb){
 const AB3=["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 function pad2(n){n=String(n);return n.length<2?"0"+n:n;}
 function normClave(c){ const p=String(c).split("|"); if(p.length<4) return String(c); p[2]=Math.abs(parseFloat(p[2])||0).toFixed(2); return p.join("|"); }
+/* el acuse solo es creíble si ese mes tiene renglones en la hoja:
+   si el mes está vacío, el acuse es de un envío que nunca llegó a escribirse */
+function esDupe(it){
+  if(!CLAVES[normClave(it.clave)]) return false;
+  const mn=MESN[it.mes]||1;
+  return (PERIODOS[`${it.year}-${pad2(mn)}`]||0) > 0;
+}
 function claveOf(it){ const mn=MESN[it.mes]||1; const f=`${it.year}-${pad2(mn)}-${pad2(it.dia)}`; const cN=strip(it.concepto).replace(/[^a-z0-9]/g,'').slice(0,24); return `${SUCURSAL}|${f}|${(it.monto||0).toFixed(2)}|${cN}${it.ref?'|'+it.ref:''}`; }
 function cargarRegistro(){
   jsonp({action:"edocuenta_registro"}, data=>{
     CLAVES={};
     if(data && data.claves){ data.claves.forEach(c=>{ CLAVES[c]=true; CLAVES[normClave(c)]=true; }); }
+    PERIODOS={}; ((data&&data.periodos)||[]).forEach(p=>{ if(p&&p.periodo) PERIODOS[String(p.periodo)]=p.n||0; });
     renderCobertura(data && data.periodos ? data.periodos : []);
-    if(ITEMS.length){ ITEMS.forEach(it=>{ it.dupe=!!CLAVES[normClave(it.clave)]; if(it.dupe) it.include=false; }); render(); }
+    if(ITEMS.length){ ITEMS.forEach(it=>{ it.dupe=esDupe(it); if(it.dupe) it.include=false; }); render(); }
   });
 }
 function renderCobertura(periodos){
@@ -425,7 +433,7 @@ async function handleFile(file){
       idx:i, fecha:`${mv.dia} ${mv.mes}`, dia:mv.dia, mes:mv.mes, year:mv.year, monto:mv.monto, raw:mv.desc.join(' '),
       concepto:cleanConcept(mv.desc), code:cl.code, cuenta:(CODEMAP[cl.code]||{}).name||'', grupo:g, estado:e,
       clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||'', confidence:cl.confidence
-    }; it.clave=claveOf(it); it.dupe=!!CLAVES[normClave(it.clave)]; if(it.dupe) REVISADOS[it.clave]={aprobado:false}; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; return it; });
+    }; it.clave=claveOf(it); it.dupe=esDupe(it); if(it.dupe) REVISADOS[it.clave]={aprobado:false}; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; return it; });
     mostrarRevision();
   }catch(err){
     console.error("[File] Fatal error:", err);
