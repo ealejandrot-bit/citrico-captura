@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-9 -->
+<!-- v20260919-10 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -339,8 +339,8 @@ function extractGastosExcel(rows){
       // Si es un número (fecha serial de Excel)
       const fechaNum = parseFloat(fechaStr);
       if(!isNaN(fechaNum) && fechaNum>30000 && fechaNum<60000){
-        // Convertir serial de Excel a fecha: 25570 (ajuste correcto para alineación)
-        const fecha = new Date((fechaNum - 25570) * 86400 * 1000);
+        // Convertir serial de Excel a fecha: 25569 es el offset correcto (1 Jan 1970 = 25569 en Excel)
+        const fecha = new Date((fechaNum - 25569) * 86400 * 1000 + 86400000);
         dia=fecha.getUTCDate();
         mes=meses[fecha.getUTCMonth()]||'ENE';
         year=String(fecha.getUTCFullYear());
