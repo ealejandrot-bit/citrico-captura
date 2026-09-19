@@ -412,21 +412,44 @@ let MODO = 'captura';
 
 // Mejorada: classifyBank con confidence
 function classifyBank(desc, monto){
-  const full=desc.join(' '), s=strip(full), concept=cleanConcept(desc);
+  // Sanitize inputs
+  if(!desc || !Array.isArray(desc)) desc = [''];
+  const full = String(desc.join ? desc.join(' ') : desc) || '';
+  const s = strip(full) || '';
+  const concept = cleanConcept(desc) || '';
+
+  if(!s) {
+    // Sin descripción
+    return {code:'',clase:monto>0?'Ingreso':'Gasto',conf:'Revisar',nota:'Sin descripción',confidence:'ninguna'};
+  }
+
   const esIngreso = monto > 0;
   const claseDefault = esIngreso ? 'Ingreso' : 'Gasto';
-  
+
   // CONFIANZA ALTA
-  if(s.includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto',confidence:'alta'};
-  if(s.includes('pago a interes')||(s.includes('pago')&&s.includes('credito'))) return {code:'701.11',clase:claseDefault,conf:'Revisar',nota:'Pago de crédito',confidence:'alta'};
-  if(s.includes('comision')) return {code:'701.10',clase:claseDefault,conf:'Directo',nota:'Comisión',confidence:'alta'};
-  
+  if((s||'').includes('traspaso de recursos')) return {code:'102.01',clase:'Traspaso',conf:'Revisar',nota:'No es gasto',confidence:'alta'};
+  if((s||'').includes('pago a interes')||(((s||'').includes('pago'))&&((s||'').includes('credito')))) return {code:'701.11',clase:claseDefault,conf:'Revisar',nota:'Pago de crédito',confidence:'alta'};
+  if((s||'').includes('comision')) return {code:'701.10',clase:claseDefault,conf:'Directo',nota:'Comisión',confidence:'alta'};
+
   // CONFIANZA MEDIA (merchants)
-  for(const [keys,cod] of MERCH){ if(keys.some(k=>s.includes(k))) return {code:cod,clase:claseDefault,conf:'Directo',nota:'Identificado',confidence:'media'}; }
-  
+  try {
+    for(const [keys,cod] of MERCH) {
+      if(keys && Array.isArray(keys) && keys.some(k=>(s||'').includes(k))) {
+        return {code:cod,clase:claseDefault,conf:'Directo',nota:'Identificado',confidence:'media'};
+      }
+    }
+  } catch(e) {
+    console.warn('[classifyBank] MERCH error:', e);
+  }
+
   // CONFIANZA BAJA (seed classify)
-  const c=seedClassify(concept); if(c) return {code:c,clase:claseDefault,conf:'Auto',nota:'Sugerido',confidence:'baja'};
-  
+  try {
+    const c=seedClassify(concept);
+    if(c) return {code:c,clase:claseDefault,conf:'Auto',nota:'Sugerido',confidence:'baja'};
+  } catch(e) {
+    console.warn('[classifyBank] seedClassify error:', e);
+  }
+
   // SIN IDENTIFICACIÓN
   return {code:'',clase:claseDefault,conf:'Revisar',nota:'No reconocido',confidence:'ninguna'};
 }
