@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- v20260919-7 -->
+<!-- v20260919-8 -->
 <style>
 :root{--bg:#F3ECDD;--surface:#FCF8EF;--field:#ECE3D0;--field-2:#E4D9C3;--ink:#2C281F;--ink2:#6E6551;--muted:#A99E86;--line:#E7DCC7;--accent:#586142;--accent-d:#464E31;--accent-weak:#E6E9DA;--green:#5E7A54;--red:#B0553A;--rose:#C9A9A4;--amber:#B98A2E;--serif:"Cormorant Garamond",Georgia,serif;--script:"Caveat",cursive;--sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
@@ -330,7 +330,7 @@ function extractGastosExcel(rows){
     else if(abono>0) monto=abono;
     else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0) monto=Math.abs(d); }
     if(saldo!=null) prev=saldo;
-    if(monto!==0){
+    if(cargo>0){  // SOLO registra gastos (cargos), excluye abonos
       const fechaRaw = r[cols.fecha];
       const fechaStr = String(fechaRaw||'').trim();
       let dia=1, mes='ENE', year=String(new Date().getFullYear());
@@ -339,9 +339,8 @@ function extractGastosExcel(rows){
       // Si es un número (fecha serial de Excel)
       const fechaNum = parseFloat(fechaStr);
       if(!isNaN(fechaNum) && fechaNum>30000 && fechaNum<60000){
-        // Convertir serial de Excel a fecha: 25569 es el offset entre epoch de Excel (1900) y JavaScript (1970)
-        // incluyendo el ajuste por el bug del 29/2/1900
-        const fecha = new Date((fechaNum - 25569) * 86400 * 1000);
+        // Convertir serial de Excel a fecha: 25568 (en lugar de 25569) suma 1 día para alineación correcta
+        const fecha = new Date((fechaNum - 25568) * 86400 * 1000);
         dia=fecha.getUTCDate();
         mes=meses[fecha.getUTCMonth()]||'ENE';
         year=String(fecha.getUTCFullYear());
