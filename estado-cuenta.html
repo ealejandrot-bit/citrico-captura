@@ -340,7 +340,7 @@ function extractGastosExcel(rows){
         mes=meses[mesNum-1]||'ENE';
         year=String(dateMatch[3]);
       }
-      out.push({desc:[String(r[cols.desc]||'').trim()],monto,year,mes,dia,fromExcel:true,fechaRaw});
+      out.push({desc:[String(r[cols.desc]||'').trim()],monto,year,mes,dia,fromExcel:true});
     }
   }
   console.log("[Excel] Done:",out.length);
