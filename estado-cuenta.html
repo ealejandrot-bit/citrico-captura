@@ -163,7 +163,17 @@ function renderCobertura(periodos){
 cargarRegistro();
 
 /* ---------- helpers ---------- */
-function strip(s){return (s||"").normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase();}
+function strip(s){
+  try {
+    if(s===undefined || s===null) return "";
+    const str = String(s).trim();
+    if(!str) return "";
+    return str.normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase();
+  } catch(e) {
+    console.error("[strip] Error processing:", s, e);
+    return "";
+  }
+}
 function num(s){return parseFloat(String(s).replace(/[$,\s]/g,''))||0;}
 const GRP={'1':['Activo','Balance'],'2':['Pasivo','Balance'],'4':['Ingresos','Estado de resultados'],'5':['Costos','Estado de resultados'],'6':['Gastos','Estado de resultados'],'7':['Result. financiero','Estado de resultados']};
 function grpEst(code){ if(!code) return ['','']; if(code==='102.01') return ['Activo','Traspaso']; return GRP[code[0]]||['','']; }
@@ -223,47 +233,55 @@ function extractGastos(lines){
 }
 /* ---------- Excel parser (best-effort) ---------- */
 function extractGastosExcel(rows){
-  // find header
+  console.log("[Excel] Starting, rows length:", rows.length);
   let hi=-1,cols={};
+
+  // Find header - simple loop without map/findIndex
   for(let i=0;i<Math.min(rows.length,15);i++){
     const r=rows[i];
     if(!r || !Array.isArray(r)) continue;
 
-    try {
-      const rm=r.map(x=>{
-        const s = String(x||'');
-        try { return strip(s); } catch(e) { return ''; }
-      });
-      const j=k=>rm.findIndex(c=>(c||'').includes(k));
+    // Manually check each column
+    let hasFecha=false, hasCargo=false, hasSaldo=false;
+    const colIndices={};
 
-      if(j('fecha')>=0 && (j('cargo')>=0||j('retiro')>=0||j('saldo')>=0)){
-        hi=i;
-        cols={
-          fecha:j('fecha'),
-          desc:Math.max(j('concepto'),j('descrip')),
-          cargo:Math.max(j('cargo'),j('retiro')),
-          abono:Math.max(j('abono'),j('deposito')),
-          saldo:j('saldo')
-        };
-        break;
-      }
-    } catch(e) {
-      continue;
+    for(let j=0;j<r.length;j++){
+      let val='';
+      try { val=strip(String(r[j]||'')); } catch(e){ val=''; }
+
+      if(!val) continue;
+      if(val.includes('fecha')){ hasFecha=true; colIndices.fecha=j; }
+      if(val.includes('cargo') || val.includes('retiro')){ hasCargo=true; colIndices.cargo=j; }
+      if(val.includes('saldo')){ hasSaldo=true; colIndices.saldo=j; }
+      if(val.includes('concepto') || val.includes('descrip')){ colIndices.desc=j; }
+      if(val.includes('abono') || val.includes('deposito')){ colIndices.abono=j; }
+    }
+
+    if(hasFecha && hasCargo && hasSaldo){
+      hi=i;
+      cols={fecha:colIndices.fecha||0, desc:colIndices.desc||0, cargo:colIndices.cargo||0, abono:colIndices.abono||-1, saldo:colIndices.saldo||0};
+      console.log("[Excel] Header at row",i,cols);
+      break;
     }
   }
+
   if(hi<0) return [];
+
   const out=[]; let prev=null;
-  for(let i=hi+1;i<rows.length;i++){ const r=rows[i]; if(!r||!r.length) continue;
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];
+    if(!r||!r.length) continue;
     const saldo = cols.saldo>=0 ? num(r[cols.saldo]) : null;
     const cargo = cols.cargo>=0 ? num(r[cols.cargo]) : 0;
     const abono = cols.abono>=0 ? num(r[cols.abono]) : 0;
     let monto=0;
-    if(cargo>0){ monto=-cargo; } 
-    else if(abono>0){ monto=abono; }
-    else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0){monto=Math.abs(d);} }
+    if(cargo>0) monto=-cargo;
+    else if(abono>0) monto=abono;
+    else if(saldo!=null && prev!=null){ const d=Math.round((saldo-prev)*100)/100; if(d<0) monto=Math.abs(d); }
     if(saldo!=null) prev=saldo;
-    if(monto!==0){ const desc=[String(r[cols.desc]||'').trim()]; out.push({desc,monto,year:String(new Date().getFullYear()),mes:'ENE',dia:1,fromExcel:true,fechaRaw:r[cols.fecha]}); }
+    if(monto!==0){ out.push({desc:[String(r[cols.desc]||'').trim()],monto,year:String(new Date().getFullYear()),mes:'ENE',dia:1,fromExcel:true,fechaRaw:r[cols.fecha]}); }
   }
+  console.log("[Excel] Done:",out.length);
   return out;
 }
 
@@ -279,8 +297,24 @@ async function handleFile(file){
   $("status").innerHTML='<span class="spin" style="border-top-color:#586142;border-color:rgba(88,97,66,.3);border-top-color:#586142"></span>Leyendo '+file.name+'...';
   try{
     let raw=[];
-    if(/\.pdf$/i.test(file.name)){ const lines=await parsePDFlines(file); raw=extractGastos(lines); }
-    else{ const data=await file.arrayBuffer(); const wb=XLSX.read(data,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{header:1}); raw=extractGastosExcel(rows); }
+    if(/\.pdf$/i.test(file.name)){
+      const lines=await parsePDFlines(file);
+      raw=extractGastos(lines);
+    }
+    else{
+      try {
+        const data=await file.arrayBuffer();
+        const wb=XLSX.read(data,{type:'array'});
+        console.log("[File] Workbook loaded, sheets:", wb.SheetNames);
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+        console.log("[File] XLSX converted to rows, total rows:", rows.length, "First 3 rows:", rows.slice(0,3));
+        raw=extractGastosExcel(rows);
+      } catch(xlsxErr) {
+        console.error("[File] XLSX parsing error:", xlsxErr);
+        throw xlsxErr;
+      }
+    }
     if(!raw.length){ $("status").textContent="No pude detectar movimientos de gasto en el archivo. ¿Es el estado de cuenta correcto?"; return; }
     ITEMS=raw.map((mv,i)=>{ const cl=classifyBank(mv.desc, mv.monto); const [g,e]=grpEst(cl.code); const it={
       idx:i, fecha:`${mv.dia} ${mv.mes}`, dia:mv.dia, mes:mv.mes, year:mv.year, monto:mv.monto, raw:mv.desc.join(' '),
@@ -288,7 +322,10 @@ async function handleFile(file){
       clase:cl.clase, conf:cl.conf, nota:cl.nota, ref:mv.ref||'', acct:mv.acct||'', confidence:cl.confidence
     }; it.clave=claveOf(it); it.dupe=!!CLAVES[it.clave]; it.include= (it.clase==='Gasto'||it.clase==='Ingreso') && !!it.code && !it.dupe; return it; });
     mostrarRevision();
-  }catch(err){ $("status").textContent="Error leyendo el archivo: "+err.message; }
+  }catch(err){
+    console.error("[File] Fatal error:", err);
+    $("status").textContent="Error leyendo el archivo: "+err.message;
+  }
 }
 
 function isDudoso(it){ return it.conf==='Revisar' || it.clase==='Traspaso' || !it.code; }
