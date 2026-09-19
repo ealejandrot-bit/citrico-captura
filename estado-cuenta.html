@@ -475,11 +475,19 @@ function updateBar(){ const sel=ITEMS.filter(aprobado); const sum=sel.reduce((a,
 updateBar();
 
 /* ---------- send ---------- */
+/* deja constancia de las claves subidas; si falla, no pasa nada: los gastos ya se escribieron */
+function registrarAcuse(acuse){
+  try{ fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},mode:'no-cors',body:JSON.stringify(acuse)}).catch(()=>{}); }catch(e){}
+}
 $("accept").addEventListener("click",send);
 function send(retries=0){
   console.log('[send] ITEMS:', ITEMS.length, 'items, retry attempt:', retries);
   const sel=ITEMS.filter(aprobado);
-  if(!sel.length){ toast("No hay gastos aprobados con código SAT válido.",false); return; }
+  if(!sel.length){
+    const dup=ITEMS.filter(it=>it.dupe).length;
+    toast(dup? ("Los "+dup+" movimientos están marcados como ya subidos — usa «Incluir de todas formas».") : "No hay gastos aprobados con código SAT válido.", false);
+    return;
+  }
   const records=sel.map(it=>{
     const mn=MESN[it.mes]||1; const fecha=`${it.year}-${String(mn).padStart(2,'0')}-${String(it.dia).padStart(2,'0')}`;
     const pos = /compra-disposicion|pos/i.test(it.raw||it.concepto)?'debcre':'transf';
@@ -494,7 +502,8 @@ function send(retries=0){
       real_banbajio:0, pagado:'Sí', observaciones:'', capturado_por:'Importación banco', clave: it.clave };
   });
   $("accept").disabled=true; $("accept").innerHTML='<span class="spin"></span>Enviando '+records.length+'...';
-  const payload={action:'edocuenta', archivo:LASTFILE, records};
+  const payload={records};                                   // este canal escribe en 'Ingresos y Gastos'
+  const acuse={action:'edocuenta', archivo:LASTFILE, records};  // este solo deja constancia en 'EdoCuenta - Registro'
   console.log('[send] payload:', payload);
   console.log('[send] SCRIPT_URL:', SCRIPT_URL);
   try {
@@ -520,7 +529,8 @@ function send(retries=0){
           const data = JSON.parse(text);
           if(data.ok || data.success || data.added) {
             const add=(data.added!==undefined?data.added:records.length), skip=(data.skipped||0);
-            toast('✓ '+add+' gastos ingresados'+(skip?' · '+skip+' ya estaban en la base':''),true);
+            registrarAcuse(acuse);
+            toast('✓ '+add+' gastos ingresados en la hoja'+(skip?' · '+skip+' omitidos':''),true);
             sel.forEach(it=>{ CLAVES[normClave(it.clave)]=true; it.dupe=true; it.include=false; REVISADOS[it.clave]={aprobado:false}; });
             mostrarRevision(); setTimeout(cargarRegistro,1500);
           } else {
@@ -528,6 +538,7 @@ function send(retries=0){
           }
         } catch(e) {
           console.log('[send] response parse error:', e);
+          registrarAcuse(acuse);
           toast('✓ '+records.length+' gastos enviados a tu hoja',true);
           sel.forEach(it=>{ CLAVES[normClave(it.clave)]=true; it.dupe=true; it.include=false; REVISADOS[it.clave]={aprobado:false}; });
           mostrarRevision(); setTimeout(cargarRegistro,1500);
@@ -638,6 +649,21 @@ function mostrarRevision(){
   
   document.getElementById('countSinId').textContent = sinId.length;
   document.getElementById('countConId').textContent = conId.length;
+
+  const dupes = ITEMS.filter(it => it.dupe);
+  const dbar = document.getElementById('dupeBar');
+  if(dbar){
+    if(dupes.length){
+      dbar.style.display = 'block';
+      document.getElementById('dupeTxt').textContent = dupes.length + ' movimientos aparecen como ya subidos y se van a omitir.';
+      document.getElementById('btnIncluirDupes').onclick = () => {
+        ITEMS.forEach(it => { if(it.dupe) REVISADOS[it.clave] = {aprobado:true}; });
+        updateBar();
+        toast('Incluidos ' + dupes.length + ' movimientos marcados como duplicados', true);
+        setTimeout(mostrarRevision, 150);
+      };
+    } else dbar.style.display = 'none';
+  }
   
   if(sinId.length > 0) {
     renderSinIdentificar(sinId);
@@ -916,6 +942,10 @@ document.getElementById('btnGuardar')?.addEventListener('click', ()=>send());
 
 <!-- === SECCIÓN DE REVISIÓN === -->
 <div id="reviewSection" style="display:none;">
+  <div id="dupeBar" style="display:none;max-width:620px;margin:0 auto 16px;background:var(--field);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--ink2);display:none">
+    <span id="dupeTxt"></span>
+    <button id="btnIncluirDupes" style="margin-left:8px;padding:7px 12px;border:none;border-radius:9px;background:var(--accent);color:#F7F3E8;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">⟳ Incluir de todas formas</button>
+  </div>
   <!-- GASTOS SIN IDENTIFICACIÓN (REQUIEREN ACCIÓN) -->
   <div id="sinIdentificar" style="margin-bottom: 32px;">
     <div class="grouphd"><span style="color: var(--red);">⚠️ Requieren código SAT</span><span class="tag rev" id="countSinId">0</span></div>
