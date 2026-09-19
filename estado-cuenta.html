@@ -483,16 +483,37 @@ function send(){
   });
   $("accept").disabled=true; $("accept").innerHTML='<span class="spin"></span>Enviando '+records.length+'...';
   const payload={action:'edocuenta', archivo:LASTFILE, records};
+  console.log('[send] payload:', payload);
   try {
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
       .then(r=>{
-        toast('✓ '+records.length+' gastos enviados a tu hoja',true);
-        sel.forEach(it=>{ CLAVES[it.clave]=true; it.dupe=true; it.include=false; });
-        render(); setTimeout(cargarRegistro,1500); $("accept").disabled=false; updateBar();
+        console.log('[send] response status:', r.status, 'ok:', r.ok);
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.text(); // Try to read response as text first
+      })
+      .then(text=>{
+        console.log('[send] response text:', text);
+        try {
+          const data = JSON.parse(text);
+          if(data.success || data.count) {
+            toast('✓ '+records.length+' gastos enviados a tu hoja',true);
+            sel.forEach(it=>{ CLAVES[it.clave]=true; it.dupe=true; it.include=false; });
+            render(); setTimeout(cargarRegistro,1500);
+          } else {
+            toast('Error en la base: '+(data.error || 'respuesta inválida'),false);
+          }
+        } catch(e) {
+          // Response might not be JSON, but if status was ok, consider it success
+          console.log('[send] response parse error:', e);
+          toast('✓ '+records.length+' gastos enviados a tu hoja',true);
+          sel.forEach(it=>{ CLAVES[it.clave]=true; it.dupe=true; it.include=false; });
+          render(); setTimeout(cargarRegistro,1500);
+        }
+        $("accept").disabled=false; updateBar();
       })
       .catch(err=>{
         console.error('[send error]',err);
-        toast('No se pudo ingresar. Revisa la conexión.',false);
+        toast('No se pudo ingresar. Revisa la conexión: '+err.message,false);
         $("accept").disabled=false; updateBar();
       });
   } catch(e) {
